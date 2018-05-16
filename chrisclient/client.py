@@ -5,7 +5,7 @@ ChRIS API client module.
 import requests
 from collection_json import Collection
 
-from.exceptions import StoreRequestException
+from.exceptions import ChrisRequestException
 
 
 class Client(object):
@@ -21,8 +21,7 @@ class Client(object):
 
     def get_plugin(self, plugin_name):
         """
-        Get a plugin's information (descriptors and parameters) given its ChRIS store
-        name.
+        Get a plugin's information (descriptors and parameters) given its ChRIS name.
         """
         plugin = {}
         search_params = {'name': plugin_name}
@@ -46,7 +45,7 @@ class Client(object):
 
     def _get(self, url, params=None):
         """
-        Internal method to make a GET request to the ChRIS store.
+        Internal method to make a GET request to the ChRIS server.
         """
         try:
             r = requests.get(url,
@@ -54,8 +53,8 @@ class Client(object):
                              auth=(self.username, self.password),
                              timeout=self.timeout)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
-            raise StoreRequestException(str(e))
+            raise ChrisRequestException(str(e))
         collection = Collection.from_json(r.text)
         if collection.error:
-            raise StoreRequestException(collection.error.message)
+            raise ChrisRequestException(collection.error.message)
         return collection.items

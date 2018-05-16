@@ -1,12 +1,12 @@
 """
-ChRIS store exceptions module.
+ChRIS exceptions module.
 """
 
-class StoreException(Exception): pass
+class ChrisException(Exception): pass
 
 
-class StoreRequestException(StoreException): pass
+class ChrisRequestException(ChrisException): pass
 
 
-class StoreErrorException(StoreException): pass
+class ChrisErrorException(ChrisException): pass
 
