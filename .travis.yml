@@ -11,6 +11,7 @@ before_script:
   - git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd
   - cd ChRIS_ultron_backEnd
   - ./docker-make.sh -U -I -i
+  - cd ../
 
 script:
   - python setup.py nosetests
