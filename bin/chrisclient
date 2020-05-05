@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+#
+# (c) 2017 Fetal-Neonatal Neuroimaging & Developmental Science Center
+#                   Boston Children's Hospital
+#
+#              http://childrenshospital.org/FNNDSC/
+#                        dev@babyMRI.org
+#
+
+import sys
+import os
+from argparse import ArgumentParser
+
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
+
+from chrisclient import client
+
+list_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugin', 'pluginparameter',
+                 'plugininstance', 'pipeline', 'pipelineinstance', 'uploadedfile',
+                 'servicefile', 'pacsfile']
+
+add_resources = ['comment', 'tag', 'plugininstance', 'pipeline', 'pipelineinstance',
+                 'uploadedfile', 'servicefile', 'pacsfile']
+
+modify_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugininstance',
+                    'pipeline', 'pipelineinstance', 'uploadedfile']
+
+remove_resources = ['feed', 'comment', 'tag', 'plugininstance', 'pipeline',
+                    'pipelineinstance', 'uploadedfile']
+
+
+parser = ArgumentParser(description='Manage Chris resources')
+parser.add_argument('url', help="url of ChRIS")
+parser.add_argument('username', help="username for ChRIS")
+parser.add_argument('password', help="password for ChRIS")
+parser.add_argument('--timeout', help="requests' timeout")
+subparsers = parser.add_subparsers(dest='subparser_name', title='subcommands',
+                                   description='valid subcommands',
+                                   help='sub-command help')
+
+# create the parser for the "list" command
+parser_list = subparsers.add_parser('list', help='list a ChRIS resource')
+parser_list.add_argument('resource_name', choices=list_resources, help="resource name")
+parser_list.add_argument('queryparameters', nargs='*', help="query parameters")
+
+# create the parser for the "add" command
+parser_add = subparsers.add_parser('add', help='add a new resource')
+parser_add.add_argument('resource_name', choices=add_resources, help="resource name")
+
+pacs_files_group = parser_add.add_argument_group('PACS files arguments')
+pacs_files_group.add_argument('--pacsfilepath', help='PACS file path')
+pacs_files_group.add_argument('--PatientID', help='patient id')
+pacs_files_group.add_argument('--PatientName', help='patient name')
+pacs_files_group.add_argument('--StudyInstanceUID', help='study id')
+pacs_files_group.add_argument('--StudyDescription', help='study description')
+pacs_files_group.add_argument('--SeriesInstanceUID', help='series id')
+pacs_files_group.add_argument('--SeriesDescription', help='series description')
+pacs_files_group.add_argument('--pacsname', help='PACS name identifier')
+
+service_files_group = parser_add.add_argument_group('service files arguments')
+service_files_group.add_argument('--servicefilepath', help='service file path')
+service_files_group.add_argument('--servicename', help='service name')
+
+# create the parser for the "modify" command
+parser_modify = subparsers.add_parser('modify', help='modify an existing resource')
+parser_modify.add_argument('resource_name', choices=modify_resources,
+                           help="resource name")
+feeds_group = parser_modify.add_argument_group('feed arguments')
+feeds_group.add_argument('--feedid', help='feed id')
+
+# create the parser for the "remove" command
+parser_remove = subparsers.add_parser('remove', help='Remove an existing resource')
+parser_remove.add_argument('resource_name', choices=remove_resources,
+                           help="resource name")
+parser_remove.add_argument('id', help="resource id")
+
+# Parse the arguments and perform the appropriate action with the client
+args = parser.parse_args()
+if args.timeout:
+    client = client.Client(args.url, args.username, args.password, args.timeout)
+else:
+    client = client.Client(args.url, args.username, args.password)
+client.set_urls()
+resource_name = args.resource_name
+
+if args.subparser_name == 'list':
+    if resource_name not in list_resources:
+        raise ValueError("Invalid operation 'list' for a '%s' resource" % resource_name)
+    methods = {
+        'plugin': client.get_plugins,
+        'pacsfile': client.get_pacs_files,
+        'servicefile': client.get_service_files
+    }
+    if resource_name not in methods:
+        raise NotImplementedError("'list' not implemented for '%s' yet" % resource_name)
+    search_params = {}
+    for param_str in args.queryparameters:
+        param_tuple = param_str.partition('==')
+        search_params[param_tuple[0]] = param_tuple[2]
+    result = methods[resource_name](search_params)
+    print('')
+    i = 0
+    for i, res in enumerate(result['data'], 1):
+        print('[%i] ' % i)
+        for descriptor in res:
+            print('%s: %s' % (descriptor, res[descriptor]))
+        print('')
+
+if args.subparser_name == 'add':
+    if resource_name not in add_resources:
+        raise ValueError("Invalid operation 'add' for a '%s' resource" % resource_name)
+    methods = {
+        'pacsfile': client.register_pacs_file,
+        'servicefile': client.register_service_file
+    }
+    if resource_name not in methods:
+        raise NotImplementedError("'add' not implemented for '%s' yet" % resource_name)
+    if resource_name == 'pacsfile':
+        data = {'path': args.pacsfilepath,
+                'PatientID': args.PatientID,
+                'PatientName': args.PatientName,
+                'StudyInstanceUID': args.StudyInstanceUID,
+                'StudyDescription': args.StudyDescription,
+                'SeriesInstanceUID': args.SeriesInstanceUID,
+                'SeriesDescription': args.SeriesDescription,
+                'pacs_name': args.pacsname
+                }
+    if resource_name == 'servicefile':
+        data = {'path': args.servicefilepath, 'service_name': args.servicename}
+    result = methods[resource_name](data)
+    print('')
+    for descriptor in result:
+        print('%s: %s' % (descriptor, result[descriptor]))
+    print('')
+
