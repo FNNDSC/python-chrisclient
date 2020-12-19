@@ -25,7 +25,7 @@ Installation
 
 Use the ``PyPI``, Luke!
 
-..code:: bash
+.. code-block:: bash
 
    pip install -U python-chrisclient
 
