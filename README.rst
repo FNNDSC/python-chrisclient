@@ -17,5 +17,7 @@ Overview
 
 At time of writing, two scripts/modules are in production:
 
- - a plugin search utility
- - a plugin run schedule utility
+- a plugin search utility
+- a plugin run schedule utility
+
+Testing.
