@@ -20,4 +20,13 @@ At time of writing, two scripts/modules are in production:
 - a plugin search utility
 - a plugin run schedule utility
 
-Testing.
+Installation
+------------
+
+Use the ``PyPI``, Luke!
+
+..code:: bash
+
+   pip install -U python-chrisclient
+
+
