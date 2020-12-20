@@ -41,7 +41,7 @@ str_desc        = """
 
         chrispl-search.py       --for <someField(s)>                    \\
                                 --using <someTemplateDesc>              \\
-                                [--CUBE <CUBEjsonDetails>]              \\
+                                [--onCUBE <CUBEjsonDetails>]            \\
                                 [--searchURL <searchURL>]               \\
                                 [--returnKeyList]                       \\
                                 [--version]                             \\
@@ -76,11 +76,11 @@ str_desc        = """
             --using name=pl-fshack
             --using name=dicom,type=ds
 
-        [--CUBE <CUBEjsonDetails>]
+        [--onCUBE <CUBEjsonDetails>]
         A JSON string that defines detail perinent to CUBE. If not passed,
         will use defaults. If passed, make sure to contain all the following:
 
-            --CUBE '
+            --onCUBE '
             {
                 "protocol":     "http",
                 "port":         "8000",
@@ -216,7 +216,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.0"
+str_version     = "1.0.2"
 str_name        = "chrispl-search.py"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -224,7 +224,7 @@ parser          = ArgumentParser(
 )
 
 parser.add_argument(
-    '--CUBE',
+    '--onCUBE',
     help    = 'A JSON string defining the details of a CUBE instance',
     action  = 'store',
     dest    = 'str_CUBE',

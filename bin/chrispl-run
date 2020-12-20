@@ -41,7 +41,7 @@ str_desc        = """
 
         chrispl-run.py          --plugin <someTemplateDesc>             \\
                                 --args <pluginCLIargs>                  \\
-                                [--CUBE <CUBEjsonDetails>]              \\
+                                [--onCUBE <CUBEjsonDetails>]            \\
                                 [--version]                             \\
                                 [--man]                                 \\
                                 [--jsonReturn]                          \\
@@ -72,11 +72,11 @@ str_desc        = """
         plugin being executed. These arguments are appropriately parsed
         and POSTed to the backend.
 
-        [--CUBE <CUBEjsonDetails>]
+        [--onCUBE <CUBEjsonDetails>]
         A JSON string that defines detail perinent to CUBE. If not passed,
         will use defaults. If passed, make sure to contain all the following:
 
-            --CUBE '
+            --onCUBE '
             {
                 "protocol":     "http",
                 "port":         "8000",
@@ -143,13 +143,20 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.0"
+str_version     = "1.0.2"
 str_name        = "chrispl-run.py"
 parser          = ArgumentParser(
                     description     = str_desc,
                     formatter_class = RawTextHelpFormatter
 )
 
+parser.add_argument(
+    '--onCUBE',
+    help    = 'A JSON string defining the details of a CUBE instance',
+    action  = 'store',
+    dest    = 'str_CUBE',
+    default = '',
+)
 parser.add_argument(
     '--version',
     help    = 'if specified, print verion',
@@ -193,11 +200,11 @@ parser.add_argument(
     default = '',
 )
 parser.add_argument(
-    '--parent',
-    help    = 'the parent plugin instance ID',
+    '--searchURL',
+    help    = 'search URL snippet',
     action  = 'store',
-    dest    = 'str_parent',
-    default = '',
+    dest    = 'str_searchURL',
+    default = 'plugins',
 )
 parser.add_argument(
     '--verbosity',
