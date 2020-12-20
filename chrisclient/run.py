@@ -139,7 +139,7 @@ class PluginRun(object):
         """
         l_args      :   list    = []
         l_keyval    :   list    = []
-        b_add       :   bool    = False
+        b_add       :   bool    = True
         str_message :   str     = "'--args' is empty!"
 
         if len(self.d_args['str_args']):
@@ -149,10 +149,8 @@ class PluginRun(object):
                 if len(l_keyval) == 1:
                     key         = l_keyval[0]
                     val         = True
-                    b_add       = True
                 if len(l_keyval) == 2:
                     (key, val)  = l_keyval
-                    b_add       = True
                 if b_add:
                     key         = key.lstrip('=')
                     key         = key.lstrip('-')
@@ -170,7 +168,7 @@ class PluginRun(object):
         Create a collectio+json template from the intenal
         plugin argument dictionary
         """
-        b_status    : bool  = False
+        b_status    : bool  = True
         self.d_CLItemplate  = {'data' : []}
         str_message : str   = 'template creation failed due to earlier error'
         keyCount    : int   = 0
@@ -184,7 +182,6 @@ class PluginRun(object):
                     }
                 )
                 keyCount += 1
-                b_status = True
         if b_status:
             str_message  = '%s key(s) parsed into template' % keyCount
         return {
