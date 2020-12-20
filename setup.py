@@ -12,17 +12,17 @@ def readme():
 
 setup(
       name             =   'python-chrisclient',
-      version          =   '0.0.1',
+      version          =   '1.0.0',
       description      =   '(Python) client for the ChRIS API',
       long_description =   readme(),
       author           =   'FNNDSC',
       author_email     =   'dev@babymri.org',
       url              =   'https://github.com/FNNDSC/python-chrisclient',
-      packages         =   ['chrisclient'],
+      packages         =   ['chrisclient', 'pudb', 'pfstate', 'pfmisc'],
       install_requires =   ['requests>=2.21.0', 'collection-json>=0.1.1'],
       test_suite       =   'nose.collector',
       tests_require    =   ['nose'],
-      scripts          =   ['bin/chrisclient'],
+      scripts          =   ['bin/chrisclient', 'bin/chrispl-run', 'bin/chrispl-search'],
       license          =   'MIT',
       zip_safe=False
 )
