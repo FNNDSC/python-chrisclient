@@ -146,7 +146,7 @@ Run an FS plugin, ``pl-mri10yr06mo01da_normal``
                     "user":         "chris",
                     "password":     "chris1234"}'
 
-This plugin does not require any specific CLI args when run in the default state. Once posted to CUBE, a string is returned to the shell::
+This plugin does not require any specific CLI args when run in the default state. Once posted to CUBE, a string is returned to the shell:
 
 .. code-block:: console
 
@@ -195,7 +195,7 @@ In this manner, a workflow can be constructed. First construct the arguments for
     --previous_id=$ROOTNODE             \
     "
 
-and now call schedule the run:
+and now schedule the run:
 
 .. code-block:: console
 
