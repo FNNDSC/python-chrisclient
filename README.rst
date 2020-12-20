@@ -10,7 +10,7 @@ A python client for the ChRIS API.
 Quick Overview
 --------------
 
-This repository contains various python scripts and modules that provide a rich client experience in interacting with a ``CUBE`` backend instance. Interaction is typically either via the command line interface (CLI) or directly in python using relevant modules.
+This repository contains various python scripts and modules that provide a rich client experience for interacting with a ``CUBE`` backend instance. Interaction is typically either via the command line interface (CLI) or directly in python using relevant modules.
 
 Overview
 --------
@@ -32,10 +32,10 @@ Use the ``PyPI``, Luke!
 Search
 ------
 
-The plugin space (actual plugin data and scheduled/run plugins) in a ``CUBE`` instance can be searched using the ``chrispl-search`` script. This returns information either in tabular text form or a richer JSON payload. The ``search.py`` module is of course suitable for inclusion into other scripts/projects.
+The plugin space (plugin ``id`` and plugin ``instance id`` ) in a ``CUBE`` instance can be searched using the ``chrispl-search`` script. This returns information either in tabular text form or a richer JSON payload. The ``search.py`` module is of course suitable for inclusion into other scripts/projects.
 
-Examples
-~~~~~~~~
+Search Examples
+~~~~~~~~~~~~~~~
 
 Find the plugin ``ID`` given a ``name`` substring search term
 =============================================================
@@ -44,19 +44,18 @@ A common use case of the search script is to return the plugin ID for a plugin n
 
 .. code-block:: bash
 
-    chrispl-search --for id,name --using name=surfer --CUBE '
-    {
-                "protocol":     "http",
-                "port":         "8000",
-                "address":      "%HOSTIP",
-                "user":         "chris",
-                "password":     "chris1234",
-    }
-    '
+    chrispl-search  --for id,name                   \
+                    --using name=surfer             \
+                    --onCUBE '{
+                        "protocol":     "http",
+                        "port":         "8000",
+                        "address":      "%HOSTIP",
+                        "user":         "chris",
+                        "password":     "chris1234"}'
 
-(note the above ``CUBE`` specification assumes an instance on the ``localhost``. The special construction, ``%HOSTIP`` (if specified) will be replaced by the actual IP of the host machine. This construct is useful in some cases where the string ``localhost`` might have issues on proxied networks.)
+(note the above ``onCUBE`` specification assumes an instance on the ``localhost``. The special construction, ``%HOSTIP`` (if specified) will be replaced by the actual IP of the host machine. This construct is useful in some cases where the string ``localhost`` might have issues on proxied networks.)
 
-will return the plugin ID and complete name for all plugins that have a substring of ``surfer`` in their ``name``:
+The above call will return the plugin ``id`` as well as the complete name for all plugins that have a substring of ``surfer`` in their ``name``:
 
 .. code-block:: console
 
@@ -68,15 +67,14 @@ Find a list of all plugins registered to a ``CUBE`` instance
 
 .. code-block:: bash
 
-    chrispl-search --for name,id,type --using name='' --CUBE '
-    {
-                "protocol":     "http",
-                "port":         "8000",
-                "address":      "%HOSTIP",
-                "user":         "chris",
-                "password":     "chris1234",
-    }
-    '
+    chrispl-search  --for name,id,type          \
+                    --using name=''             \
+                    --onCUBE '{
+                        "protocol":     "http",
+                        "port":         "8000",
+                        "address":      "%HOSTIP",
+                        "user":         "chris",
+                        "password":     "chris1234"}'
 
 will return
 
@@ -108,10 +106,17 @@ The actual space of executed plugin instances can also be searched. For instance
 
 .. code-block:: bash
 
-    chrispl-search --for id,status,plugin_name --using plugin_name=surfer \
-                   --searchURL plugins/instances
+    chrispl-search --for id,status,plugin_name          \
+                   --using plugin_name=surfer           \
+                   --searchURL plugins/instances        \
+                   --onCUBE '{
+                        "protocol":     "http",
+                        "port":         "8000",
+                        "address":      "%HOSTIP",
+                        "user":         "chris",
+                        "password":     "chris1234"}'
 
-which can return something like:
+which will return something similar to:
 
 .. code-block:: console
 
@@ -120,5 +125,106 @@ which can return something like:
     (searchSubstr:plugin_name=surfer)  id 10 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 9  status finishedSuccessfully  plugin_name pl-freesurfer_pp
 
-Ends.
+Run
+---
+
+Plugins can be run/scheduled on a CUBE instance using the ``chrispl-run`` script. The CLI parameters are broadly similar to ``chrispl-search`` with some semantic changes more pertinent to the run call -- the ``for`` search is fixed to the plugin ``id`` and the search ``--pluginSpec`` becomes the ``--using`` CLI.
+
+Run Examples
+~~~~~~~~~~~~
+
+Run an FS plugin, ``pl-mri10yr06mo01da_normal``
+===============================================
+
+.. code-block:: console
+
+    chrispl-run --plugin name=pl-mri10yr06mo01da_normal \
+                --onCUBE '{
+                    "protocol":     "http",
+                    "port":         "8000",
+                    "address":      "%HOSTIP",
+                    "user":         "chris",
+                    "password":     "chris1234"}'
+
+This plugin does not require any specific CLI args when run in the default state. Once posted to CUBE, a string is returned to the shell::
+
+.. code-block:: console
+
+    (name=pl-mri10yr06mo01da_normal) id 14
+
+Indicating that the plugin instance ID of the plugin in ``CUBE`` is ``14`` (for example).
+
+For convenience, let's set:
+
+.. code-block:: console
+
+    CUBE='{
+        "protocol":     "http",
+        "port":         "8000",
+        "address":      "%HOSTIP",
+        "user":         "chris",
+        "password":     "chris1234"
+    }'
+
+This return construct lends itself easily to scripting:
+
+.. code-block:: console
+
+    ROOTNODE=$(./chrispl-run --plugin name=pl-mri10yr06mo01da_normal --onCUBE "$CUBE" | awk '{print $3}')
+
+or with some formatting:
+
+.. code-block:: console
+
+    ROOTNODE=$(
+        chrispl-run --plugin name=pl-mri10yr06mo01da_normal     \
+                    --onCUBE="$CUBE"                            |
+                         awk '{print $3}'
+    )
+
+Run a DS plugin, ``pl-freesurfer_pp``, that builds on the previous node
+=======================================================================
+
+In this manner, a workflow can be constructed. First construct the arguments for the next plugin:
+
+.. code-block:: console
+
+    ARGS="                              \
+    --ageSpec=10-06-01;                 \
+    --copySpec=sag,cor,tra,stats,3D;    \
+    --previous_id=$ROOTNODE             \
+    "
+
+and now call schedule the run:
+
+.. code-block:: console
+
+    chrispl-run --plugin name="pl-freesurfer_pp"    \
+                --args="$ARGS"                      \
+                --onCUBE="$CUBE"
+
+which will return:
+
+.. code-block:: console
+
+    (name=pl-freesurfer_pp)        id 19
+
+As before, this can be captured and used for subsequent chaining:
+
+.. code-block:: console
+
+    FSNODE=$(
+        chrispl-run --plugin name=pl-freesurfer_pp  \
+                    --args="$ARGS"                  \
+                    --onCUBE="$CUBE"                |
+                         awk '{print $3}'
+    )
+
+Additional Reading
+------------------
+
+Consult the ChRIS_docs ``workflow`` directory for examples of workflows built using these tools.
+
+*-30-*
+
 
