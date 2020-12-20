@@ -1,0 +1,353 @@
+#!/usr/bin/env python3
+
+import  logging
+logging.disable(logging.CRITICAL)
+
+import  os
+import  sys
+import  json
+import  socket
+import  requests
+
+import  pudb
+import  pfmisc
+
+# pfstorage local dependencies
+from    pfmisc._colors      import  Colors
+from    pfmisc.debug        import  debug
+from    pfmisc.C_snode      import  *
+from    pfstate             import  S
+
+from    argparse            import RawTextHelpFormatter
+from    argparse            import ArgumentParser
+
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
+
+from    chrisclient         import search
+
+str_desc        = """
+
+    NAME
+
+        chrispl-search.py
+
+    PREREQUISITES
+
+        The python `pfmisc` and `pfstate` modules:
+
+            pip install -U pfmisc pfstate
+
+    SYNOPSIS
+
+        chrispl-search.py       --for <someField(s)>                    \\
+                                --using <someTemplateDesc>              \\
+                                [--CUBE <CUBEjsonDetails>]              \\
+                                [--searchURL <searchURL>]               \\
+                                [--returnKeyList]                       \\
+                                [--version]                             \\
+                                [--man]                                 \\
+                                [--jsonReturn]                          \\
+                                [--syslogPrepend]                       \\
+                                [--verbosity <level>]
+
+    ARGS
+
+        --for <someField(s)>
+        A comma separated list of fields to return from the plugin search.
+        Results are typically printed in a "table", with each row containing
+        the value for each of the `for` fields.
+
+        Typical examples:
+
+            --for name
+            --for name,id
+
+        --using <someTemplateDesc>
+        The search condition/pattern to apply. This is typically some
+        value relevant to the plugin description as referenced with the
+        CUBE API.
+
+        The <someTemplateDesc> can be a compound string that is comma
+        separated. For instance 'type=ds,name=pfdo' will search for all
+        plugins that have 'pfdo' in their name and 'ds' as their type.
+
+        Typical examples:
+
+            --using name=pl-fshack
+            --using name=dicom,type=ds
+
+        [--CUBE <CUBEjsonDetails>]
+        A JSON string that defines detail perinent to CUBE. If not passed,
+        will use defaults. If passed, make sure to contain all the following:
+
+            --CUBE '
+            {
+                "protocol":     "http",
+                "port":         "8000",
+                "address":      "%HOSTIP",
+                "user":         "chris",
+                "password":     "chris1234",
+            }
+            '
+
+        The ``%HOSTIP`` is a special meta token that the script will replace
+        with the actual IP of the host system. This may be Linux specific,
+        so beware!
+
+        [--searchURL <searchURL>]
+        The URL snippet on CUBE that specifies the search. By default this is
+        "plugins" but other valid snippets are
+
+            plugins/instances
+
+        [--returnKeyList]
+        If true, return in the JSON hit structure an element that contains
+        all the key names for the search return.
+
+        [--version]
+        Print the version and exit.
+
+        [--jsonReturn]
+        If specified, print the full JSON return from the API call and
+        various class methods that apply processing to the API call.
+
+        [--syslogPrepend]
+        If specified, prepend pseudo (colorized) syslog info to output
+        print calls.
+
+        [--verbosity <level>]
+        Apply a verbosity to the output.
+
+
+    DESCRIPTION
+
+        `chrispl-search.py` provides for a simple CLI mechanism to search
+        a CUBE instance plugin space for various detail. Given, for example,
+        a plugin name, return the plugin ID, or given a plugin type, return
+        all names.
+
+        The search can also consider plugin instances, which allow for search
+        on end status, instance IDs, etc.
+
+        The primary purpose of this script is a helper component in creating
+        autonomous feeds to a ChRIS instance from some stand-alone script,
+        although it is quite well suited as a CLI mechanism to query for
+        information on various plugins in a CUBE instantiation.
+
+    EXAMPLES
+
+    * List by name all the DS plugins in a CUBE instance:
+
+        $ python chrispl-search --for name --using type=ds
+        (searchSubstr:type=ds)      name pl-pfdo_med2img
+        (searchSubstr:type=ds)      name pl-pfdo_mgz2img
+        (searchSubstr:type=ds)      name pl-mgz2lut_report
+        (searchSubstr:type=ds)      name pl-z2labelmap
+        (searchSubstr:type=ds)      name pl-freesurfer_pp
+        (searchSubstr:type=ds)      name pl-fastsurfer_inference
+        (searchSubstr:type=ds)      name pl-fshack
+        (searchSubstr:type=ds)      name pl-mpcs
+        (searchSubstr:type=ds)      name pl-pfdicom_tagsub
+        (searchSubstr:type=ds)      name pl-pfdicom_tagextract
+        (searchSubstr:type=ds)      name pl-s3push
+        (searchSubstr:type=ds)      name pl-dsdircopy
+        (searchSubstr:type=ds)      name pl-s3retrieve
+        (searchSubstr:type=ds)      name pl-simpledsapp
+
+    * List by name all DS plugins that also have 'dicom' in their name:
+
+        $ python chrispl-search --for name --using type=ds,name=dicom
+        (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagsub
+        (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagextract
+
+    * Find the ID of the `pl-fshack` plugin:
+
+        $ python chrispl-search --for id --using name=pl-fshack
+        (name=pl-fshack)        id      10
+
+    * List all the plugins (by passing an empty string to ``name``) by
+      name, id, and plugin type:
+
+        $chrispl-search --for name,id,type --using name=''
+        (searchSubstr:name=)      name pl-pfdo_med2img            id 17   type ds
+        (searchSubstr:name=)      name pl-pfdo_mgz2img            id 16   type ds
+        (searchSubstr:name=)      name pl-mgz2lut_report          id 15   type ds
+        (searchSubstr:name=)      name pl-z2labelmap              id 13   type ds
+        (searchSubstr:name=)      name pl-freesurfer_pp           id 12   type ds
+        (searchSubstr:name=)      name pl-fastsurfer_inference    id 11   type ds
+        (searchSubstr:name=)      name pl-fshack                  id 10   type ds
+        (searchSubstr:name=)      name pl-mpcs                    id 9    type ds
+        (searchSubstr:name=)      name pl-pfdicom_tagsub          id 8    type ds
+        (searchSubstr:name=)      name pl-pfdicom_tagextract      id 7    type ds
+        (searchSubstr:name=)      name pl-s3push                  id 6    type ds
+        (searchSubstr:name=)      name pl-dsdircopy               id 5    type ds
+        (searchSubstr:name=)      name pl-s3retrieve              id 3    type ds
+        (searchSubstr:name=)      name pl-simpledsapp             id 2    type ds
+        (searchSubstr:name=)      name pl-lungct                  id 18   type fs
+        (searchSubstr:name=)      name pl-mri10yr06mo01da_normal  id 14   type fs
+        (searchSubstr:name=)      name pl-dircopy                 id 4    type fs
+        (searchSubstr:name=)      name pl-simplefsapp             id 1    type fs
+
+    * Search for the plugin INSTANCE id, status, and full name of plugins
+      that have a substring of "mri" in their names (note the ``--searchURL``):
+
+        $chrispl-search --for id,status,plugin_name --using plugin_name=mri --searchURL plugins/instances
+        (searchSubstr:plugin_name=mri)  id 8    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 7    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 6    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 5    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 4    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 3    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 2    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+        (searchSubstr:plugin_name=mri)  id 1    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
+
+    * Pass a ``--jsonReturn`` for full JSON return information, including
+      a list of keys to use in a given search space.
+
+"""
+
+# Determine the hostIP
+str_defIP   = [l for l in (
+                [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2]
+                if not ip.startswith("127.")][:1],
+                    [[(s.connect(('8.8.8.8', 53)),
+                       s.getsockname()[0], s.close())
+                for s in [socket.socket(socket.AF_INET,
+                          socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
+
+
+str_version     = "1.0.0"
+str_name        = "chrispl-search.py"
+parser          = ArgumentParser(
+                    description     = str_desc,
+                    formatter_class = RawTextHelpFormatter
+)
+
+parser.add_argument(
+    '--CUBE',
+    help    = 'A JSON string defining the details of a CUBE instance',
+    action  = 'store',
+    dest    = 'str_CUBE',
+    default = '',
+)
+parser.add_argument(
+    '--version',
+    help    = 'if specified, print verion',
+    action  = 'store_true',
+    dest    = 'b_version',
+    default = False,
+)
+parser.add_argument(
+    '--man', '-x',
+    help    = 'if specified, show help and exit',
+    action  = 'store_true',
+    dest    = 'b_man',
+    default = False,
+)
+parser.add_argument(
+    '--syslogPrepend',
+    help    = 'if specified, prepend syslog info to output',
+    action  = 'store_true',
+    dest    = 'b_syslog',
+    default = False,
+)
+parser.add_argument(
+    '--jsonReturn',
+    help    = 'if specified, return results as JSON',
+    action  = 'store_true',
+    dest    = 'b_json',
+    default = False,
+)
+parser.add_argument(
+    '--for',
+    help    = 'property for which to search',
+    action  = 'store',
+    dest    = 'str_for',
+    default = '',
+)
+parser.add_argument(
+    '--using',
+    help    = 'search template in <key>=<value>[,..] form',
+    action  = 'store',
+    dest    = 'str_using',
+    default = '',
+)
+parser.add_argument(
+    '--searchURL',
+    help    = 'search URL snippet',
+    action  = 'store',
+    dest    = 'str_searchURL',
+    default = 'plugins',
+)
+parser.add_argument(
+    '--returnKeyList',
+    help    = 'return the list of keys in the search space',
+    action  = 'store_true',
+    dest    = 'b_returnKeyList',
+    default = False,
+)
+parser.add_argument(
+    '--verbosity',
+    help    = 'the system verbosity',
+    action  = 'store',
+    dest    = 'verbosity',
+    default = 1,
+)
+
+args        = parser.parse_args()
+
+def preprocessing_do(*args):
+    """
+    Some quick preprocessing (check for --man or --version flags)
+    """
+    d_args  = vars(args[0])
+    if d_args['b_man']:
+        print(str_desc)
+        sys.exit(0)
+
+    if d_args['b_version']:
+        print(str_version)
+        sys.exit(0)
+
+def postprocessing_do(query, d_result):
+    """
+    Final postprocessing housekeeping.
+    """
+    retCode     :   int      = 1
+    if query.d_args['b_json']:
+        query.dp.qprint(json.dumps(d_result, indent = 4))
+        if len(d_result['target']):
+            retCode = 0
+    else:
+        if d_result['status']:
+            for target in d_result['target']:
+                query.dp.qprint('(searchSubstr:%s)' % query.d_args['str_using'], end='')
+                for hit in target:
+                    query.dp.qprint('%10s %-30s' % (hit['name'], hit['value']),
+                                    end='', syslog=False)
+                query.dp.qprint('')
+                retCode = 0
+    return retCode
+
+def main(*args):
+    """
+    The main method of the script, when called directly from the CLI
+    """
+    retCode     : int   = 1
+    d_meta      : dict  = {
+        'version':  str_version,
+        'name':     str_name,
+        'desc':     str_desc,
+        'defIP':    str_defIP
+    }
+
+    preprocessing_do(*args)
+
+    query       = search.PluginSearch(d_meta, args[0])
+    d_result    = query.do()
+    retCode     = postprocessing_do(query, d_result)
+
+    sys.exit(retCode)
+
+if __name__ == "__main__":
+    main(args)
