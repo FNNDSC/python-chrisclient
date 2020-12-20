@@ -58,7 +58,7 @@ A common use case of the search script is to return the plugin ID for a plugin n
 
 will return the plugin ID and complete name for all plugins that have a substring of ``surfer`` in their ``name``:
 
-.. code-block:: bash
+.. code-block:: console
 
     (searchSubstr:name=surfer)  id 12  name pl-freesurfer_pp
     (searchSubstr:name=surfer)  id 11  name pl-fastsurfer_inference
@@ -108,15 +108,7 @@ The actual space of executed plugin instances can also be searched. For instance
 
 ..code-block:: bash
 
-    chrispl-search --for id,status,plugin_name --using plugin_name=surfer --searchURL plugins/instances --CUBE '
-    {
-                "protocol":     "http",
-                "port":         "8000",
-                "address":      "%HOSTIP",
-                "user":         "chris",
-                "password":     "chris1234",
-    }
-    '
+    chrispl-search --for id,status,plugin_name --using plugin_name=surfer --searchURL plugins/instances 
 
 which can return something like:
 
