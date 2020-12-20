@@ -81,6 +81,7 @@ Find a list of all plugins registered to a ``CUBE`` instance
 will return
 
 ..code-block:: bash
+
     (searchSubstr:name=)      name pl-pfdo_med2img           id 17  type ds
     (searchSubstr:name=)      name pl-pfdo_mgz2img           id 16  type ds
     (searchSubstr:name=)      name pl-mgz2lut_report         id 15  type ds
@@ -107,11 +108,24 @@ The actual space of executed plugin instances can also be searched. For instance
 
 ..code-block:: bash
 
-    chrispl-search --for id,status,plugin_name --using plugin_name=surfer --searchURL plugins/instances
+    chrispl-search --for id,status,plugin_name --using plugin_name=surfer --searchURL plugins/instances --CUBE '
+    {
+                "protocol":     "http",
+                "port":         "8000",
+                "address":      "%HOSTIP",
+                "user":         "chris",
+                "password":     "chris1234",
+    }
+    '
+
+which can return something like:
+
+..code-block:: bash
+
     (searchSubstr:plugin_name=surfer)  id 12 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 11 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 10 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 9  status finishedSuccessfully  plugin_name pl-freesurfer_pp
 
-
+Ends.
 
