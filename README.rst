@@ -108,7 +108,8 @@ The actual space of executed plugin instances can also be searched. For instance
 
 .. code-block:: bash
 
-    chrispl-search --for id,status,plugin_name --using plugin_name=surfer --searchURL plugins/instances 
+    chrispl-search --for id,status,plugin_name --using plugin_name=surfer \
+                   --searchURL plugins/instances
 
 which can return something like:
 
