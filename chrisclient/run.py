@@ -152,6 +152,10 @@ class PluginRun(object):
                 if len(l_keyval) == 2:
                     (key, val)  = l_keyval
                 if b_add:
+                    # Remove all white space and other
+                    # leading '=' or '-' chars from
+                    # the key
+                    key         = "".join(key.split())
                     key         = key.lstrip('=')
                     key         = key.lstrip('-')
                     self.d_CLIargs.update({key: val})
