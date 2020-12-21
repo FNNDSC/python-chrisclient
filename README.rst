@@ -20,6 +20,8 @@ At time of writing (late 2020), two scripts/modules are in production:
 - a plugin search utility
 - a plugin run schedule utility
 
+Note that in the instructions below, the details of a ``CUBE`` instance are passed in a JSON structure using the ``--onCUBE`` flag. In many cases you might only want to pass the address of a ``CUBE`` instance. For this purpose, the ``--onCUBEaddress`` can be used that will only set the address and keep other default information intact.
+
 Installation
 ------------
 
