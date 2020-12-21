@@ -42,6 +42,7 @@ str_desc        = """
         chrispl-run.py          --plugin <someTemplateDesc>             \\
                                 --args <pluginCLIargs>                  \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
+                                [--onCUBEaddress <address>]             \\
                                 [--version]                             \\
                                 [--man]                                 \\
                                 [--jsonReturn]                          \\
@@ -85,6 +86,12 @@ str_desc        = """
                 "password":     "chris1234",
             }
             '
+
+        [--onCUBEaddress <address>]
+        Instead of passing a complete JSON object as with ``--onCUBE``, in
+        some cases only the address (IP or name) of the ``CUBE`` instance
+        needs to be set. This flag is a mechanism to only set the address
+        of the target ``CUBE``.
 
         [--version]
         Print the version and exit.
@@ -143,7 +150,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.4"
+str_version     = "1.0.6"
 str_name        = "chrispl-run.py"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -153,6 +160,13 @@ parser          = ArgumentParser(
 parser.add_argument(
     '--onCUBE',
     help    = 'A JSON string defining the details of a CUBE instance',
+    action  = 'store',
+    dest    = 'str_CUBE',
+    default = '',
+)
+parser.add_argument(
+    '--onCUBEaddress',
+    help    = 'the address of a CUBE instance',
     action  = 'store',
     dest    = 'str_CUBE',
     default = '',
