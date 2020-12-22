@@ -29,7 +29,7 @@ str_desc        = """
 
     NAME
 
-        chrispl-run.py
+        chrispl-run
 
     PREREQUISITES
 
@@ -39,7 +39,7 @@ str_desc        = """
 
     SYNOPSIS
 
-        chrispl-run.py          --plugin <someTemplateDesc>             \\
+        chrispl-run             --plugin <someTemplateDesc>             \\
                                 --args <pluginCLIargs>                  \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
@@ -110,7 +110,7 @@ str_desc        = """
 
     DESCRIPTION
 
-        `chrispl-run.py` provides for a simple CLI mechanism to schedule a ChRIS
+        ``chrispl-run`` provides for a simple CLI mechanism to schedule a ChRIS
         plugin via CUBE in a manner that is roughly analogous to the plugin
         CLI interface.
 
@@ -128,8 +128,10 @@ str_desc        = """
     Run an instance of the ``pl-freesurfer_pp`` plugin and connect to
     upstream node of instance ID ``1``:
 
-        $chrispl-run    --plugin name=freesurfer_pp         \\
-                        --args='--ageSpec=10-06-01;--copySpec=sag,cor,tra,stats,3D;--previous_id=1'
+        $ chrispl-run    --plugin name=freesurfer_pp         \\
+                        --args="--ageSpec=10-06-01;          \\
+                        --copySpec=sag,cor,tra,stats,3D;     \\
+                        --previous_id=1"
 
     which should return
 
@@ -150,7 +152,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.6"
+str_version     = "1.0.8"
 str_name        = "chrispl-run.py"
 parser          = ArgumentParser(
                     description     = str_desc,

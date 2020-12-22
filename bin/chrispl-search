@@ -29,7 +29,7 @@ str_desc        = """
 
     NAME
 
-        chrispl-search.py
+        chrispl-search
 
     PREREQUISITES
 
@@ -39,7 +39,7 @@ str_desc        = """
 
     SYNOPSIS
 
-        chrispl-search.py       --for <someField(s)>                    \\
+        chrispl-search          --for <someField(s)>                    \\
                                 --using <someTemplateDesc>              \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--searchURL <searchURL>]               \\
@@ -127,7 +127,7 @@ str_desc        = """
 
     DESCRIPTION
 
-        `chrispl-search.py` provides for a simple CLI mechanism to search
+        ``chrispl-search`` provides for a simple CLI mechanism to search
         a CUBE instance plugin space for various detail. Given, for example,
         a plugin name, return the plugin ID, or given a plugin type, return
         all names.
@@ -144,7 +144,7 @@ str_desc        = """
 
     * List by name all the DS plugins in a CUBE instance:
 
-        $ python chrispl-search --for name --using type=ds
+        $ chrispl-search --for name --using type=ds
         (searchSubstr:type=ds)      name pl-pfdo_med2img
         (searchSubstr:type=ds)      name pl-pfdo_mgz2img
         (searchSubstr:type=ds)      name pl-mgz2lut_report
@@ -162,19 +162,19 @@ str_desc        = """
 
     * List by name all DS plugins that also have 'dicom' in their name:
 
-        $ python chrispl-search --for name --using type=ds,name=dicom
+        $ chrispl-search --for name --using type=ds,name=dicom
         (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagsub
         (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagextract
 
     * Find the ID of the `pl-fshack` plugin:
 
-        $ python chrispl-search --for id --using name=pl-fshack
+        $ chrispl-search --for id --using name=pl-fshack
         (name=pl-fshack)        id      10
 
     * List all the plugins (by passing an empty string to ``name``) by
       name, id, and plugin type:
 
-        $chrispl-search --for name,id,type --using name=''
+        $ chrispl-search --for name,id,type --using name=''
         (searchSubstr:name=)      name pl-pfdo_med2img            id 17   type ds
         (searchSubstr:name=)      name pl-pfdo_mgz2img            id 16   type ds
         (searchSubstr:name=)      name pl-mgz2lut_report          id 15   type ds
@@ -197,7 +197,7 @@ str_desc        = """
     * Search for the plugin INSTANCE id, status, and full name of plugins
       that have a substring of "mri" in their names (note the ``--searchURL``):
 
-        $chrispl-search --for id,status,plugin_name --using plugin_name=mri --searchURL plugins/instances
+        $ chrispl-search --for id,status,plugin_name --using plugin_name=mri --searchURL plugins/instances
         (searchSubstr:plugin_name=mri)  id 8    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
         (searchSubstr:plugin_name=mri)  id 7    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
         (searchSubstr:plugin_name=mri)  id 6    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
@@ -222,7 +222,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.6"
+str_version     = "1.0.8"
 str_name        = "chrispl-search.py"
 parser          = ArgumentParser(
                     description     = str_desc,
