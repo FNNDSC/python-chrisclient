@@ -42,6 +42,7 @@ str_desc        = """
         chrispl-search          --for <someField(s)>                    \\
                                 --using <someTemplateDesc>              \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
+                                [--onCUBEaddress <address>]             \\
                                 [--searchURL <searchURL>]               \\
                                 [--returnKeyList]                       \\
                                 [--version]                             \\
@@ -222,8 +223,8 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.8"
-str_name        = "chrispl-search.py"
+str_version     = "1.0.10"
+str_name        = "chrispl-search"
 parser          = ArgumentParser(
                     description     = str_desc,
                     formatter_class = RawTextHelpFormatter
