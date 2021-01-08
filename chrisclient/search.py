@@ -149,46 +149,70 @@ class PluginSearch(object):
 
         This method implements the actual search logic.
 
+        Caller should check return!
+
         """
-        d_resp              : dict  = {}
-        d_templatize        : dict  = self.search_templatize()
-        b_status            : bool  = False
-        str_message         : str   = 'CUBE API not called because of previous error'
+        def dataServiceURL_resolve():
+            """
+            Based on CLI flags, resolve the actual URL in CUBE.
+            """
+            str_URL         : str   = ""
+            str_id          : str   = ""
+            limit           : int   = 500
+
+            if self.d_args['str_across'] == 'plugins':
+                str_URL     = 'api/v1/plugins/search/?limit=%d' % limit
+            if self.d_args['str_across'] == 'plugininstances':
+                str_URL     = 'api/v1/plugins/instances/search/?limit=%d' % \
+                                (limit)
+            if self.d_args['str_across'] == 'files':
+                if 'plugin_inst_id' in self.d_args['str_using']:
+                    str_id  = self.d_args['str_using'].split('=')[1]
+                    if str_id.isnumeric():
+                        str_URL = 'api/v1/plugins/instances/%s/files/?limit=%d' % \
+                                    (str_id, limit)
+            return str_URL
+
+        d_resp              : dict      = {}
+        d_templatize        : dict      = self.search_templatize()
+        b_status            : bool      = False
+        str_message         : str       = 'CUBE API not called because of previous error'
         if d_templatize['status']:
             d_params    = d_templatize['params']
             d_headers           : dict = {
                 'Accept':   'application/vnd.collection+json'
             }
-            d_resp              : dict = {}
-            str_dataServiceAddr : str  = "%s://%s:%s" % (
+            d_resp              : dict  = {}
+            str_dataServiceAddr : str   = "%s://%s:%s" % (
                                     self.S('/CUBE/protocol'),
                                     self.S('/CUBE/address'),
                                     self.S('/CUBE/port')
                                 )
-            str_dataServiceURL  : str  = 'api/v1/%s/search/?limit=100' % \
-                                            self.d_args['str_searchURL']
-            str_user            : str  = self.S('/CUBE/user')
-            str_passwd          : str  = self.S('/CUBE/password')
-            str_URL             : str  = '%s/%s' % (
-                                    str_dataServiceAddr,
-                                    str_dataServiceURL
-                                )
-            try:
-                resp = requests.get(
-                                    str_URL,
-                                    params  = d_params,
-                                    auth    = (str_user, str_passwd),
-                                    timeout = 30,
-                                    headers = d_headers
-                        )
-                b_status        = True
-                str_message     = "CUBE call return a response"
-            except (requests.exceptions.Timeout,
-                    requests.exceptions.RequestException) as e:
-                logging.error(str(e))
-                str_message     = "CUBE call return some error"
-                raise
-            d_resp = resp.json()
+            str_dataServiceURL  : str   =    dataServiceURL_resolve()
+            if len(str_dataServiceURL):
+                str_user            : str   = self.S('/CUBE/user')
+                str_passwd          : str   = self.S('/CUBE/password')
+                str_URL             : str   = '%s/%s' % (
+                                        str_dataServiceAddr,
+                                        str_dataServiceURL
+                                    )
+                try:
+                    resp = requests.get(
+                                        str_URL,
+                                        params  = d_params,
+                                        auth    = (str_user, str_passwd),
+                                        timeout = 30,
+                                        headers = d_headers
+                            )
+                    b_status        = True
+                    str_message     = "CUBE call returned a response"
+                    d_resp          = resp.json()
+                except (requests.exceptions.Timeout,
+                        requests.exceptions.RequestException) as e:
+                    logging.error(str(e))
+                    str_message     = "CUBE call returned some error"
+            else:
+                str_message         = "Unable to construct a valid service URL. Check if context makes sense."
         return {
             'status':       b_status,
             'templatize':   d_templatize,
