@@ -104,13 +104,13 @@ will return
 Search plugin *instances*
 ==========================
 
-The actual space of executed plugin instances can also be searched. For instance, find the *instance IDs* of all plugins with name substring ``surfer`` and list their ``status``. Note that to search the *instance* space, the ``--searchURL plugins/instances`` is specified:
+The actual space of executed plugin instances can also be searched. For instance, find the *instance IDs* of all plugins with name substring ``surfer`` and list their ``status``. Note that to search the *instance* space, the ``--across plugininstances`` is specified:
 
 .. code-block:: bash
 
     chrispl-search --for id,status,plugin_name          \
                    --using plugin_name=surfer           \
-                   --searchURL plugins/instances        \
+                   --across plugininstances             \
                    --onCUBE '{
                         "protocol":     "http",
                         "port":         "8000",
@@ -126,6 +126,28 @@ which will return something similar to:
     (searchSubstr:plugin_name=surfer)  id 11 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 10 status finishedSuccessfully  plugin_name pl-freesurfer_pp
     (searchSubstr:plugin_name=surfer)  id 9  status finishedSuccessfully  plugin_name pl-freesurfer_pp
+
+Search plugin *files*
+=====================
+
+The actual list of file data associated with the outputs of a plugin instance can also be searched. For instance, find the names of files by searching for the *fname* across ``files`` using ``plugin_inst_id`` of ``2``:
+
+.. code-block:: bash
+
+    chrispl-search --for fname                              \
+                   --using plugin_inst_id=2                 \
+                   --across files                           \
+                   --onCUBEaddress megalodon.local
+
+which will return something similar to:
+
+.. code-block:: console
+
+    (searchSubstr:plugin_name=surfer)  id 12 status finishedSuccessfully  plugin_name pl-freesurfer_pp
+    (searchSubstr:plugin_name=surfer)  id 11 status finishedSuccessfully  plugin_name pl-freesurfer_pp
+    (searchSubstr:plugin_name=surfer)  id 10 status finishedSuccessfully  plugin_name pl-freesurfer_pp
+    (searchSubstr:plugin_name=surfer)  id 9  status finishedSuccessfully  plugin_name pl-freesurfer_pp
+
 
 Run
 ---
