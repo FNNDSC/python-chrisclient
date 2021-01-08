@@ -41,6 +41,7 @@ str_desc        = """
 
         chrispl-search          --for <someField(s)>                    \\
                                 --using <someTemplateDesc>              \\
+                                [--across <metaSearchSpace>]            \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
                                 [--searchURL <searchURL>]               \\
@@ -77,6 +78,23 @@ str_desc        = """
             --using name=pl-fshack
             --using name=dicom,type=ds
 
+        [--across <metaSearchSpace>]
+        An optional qualifier that defines a "meta" search space. Valid
+        qualifiers are 'plugins', 'plugininstances' and 'files'. Specifying a
+        given <metaSearchSpace> does have contextual implications since
+        the --for and --using arguments can be <metaSearchSpace> dependent.
+
+        Typical examples:
+
+            --for fname --using plugin_inst_id=9 --across files
+
+        will return the field 'fname' for all files created by plugin
+        instance id=9. The <metaSeachSpace> identifiers are contextual. Thus,
+        searching given <across> fields might have specific <using> and
+        <for> requirements.
+
+        Note that the default <metaSearchSpace> is `plugins`.
+
         [--onCUBE <CUBEjsonDetails>]
         A JSON string that defines detail perinent to CUBE. If not passed,
         will use defaults. If passed, make sure to contain all the following:
@@ -100,12 +118,6 @@ str_desc        = """
         some cases only the address (IP or name) of the ``CUBE`` instance
         needs to be set. This flag is a mechanism to only set the address
         of the target ``CUBE``.
-
-        [--searchURL <searchURL>]
-        The URL snippet on CUBE that specifies the search. By default this is
-        "plugins" but other valid snippets are
-
-            plugins/instances
 
         [--returnKeyList]
         If true, return in the JSON hit structure an element that contains
@@ -135,6 +147,9 @@ str_desc        = """
 
         The search can also consider plugin instances, which allow for search
         on end status, instance IDs, etc.
+
+        Additional "metaSpaces" to search across include the files created
+        by plugin instances.
 
         The primary purpose of this script is a helper component in creating
         autonomous feeds to a ChRIS instance from some stand-alone script,
@@ -208,6 +223,34 @@ str_desc        = """
         (searchSubstr:plugin_name=mri)  id 2    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
         (searchSubstr:plugin_name=mri)  id 1    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
 
+    * Find the status of a specific plugin INSTANCE id (in this case, id=9):
+
+        $ chrispl-search --for status --using id=9 --across plugininstances
+        (searchSubstr:id=9)    status finishedSuccessfully
+
+    * To get a list of files created by the above plugin INSTANCE id
+
+        $ chrispl-search --for fname --using plugin_inst_id=9 --across files
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientF.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientE.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientD.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientC.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientB.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientA.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/jobStatusSummary.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/jobStatus.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/input.meta.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/ex-covid.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/ex-covid-ct.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0006.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0005.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0004.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0003.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0002.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0001.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0000.dcm
+
+
     * Pass a ``--jsonReturn`` for full JSON return information, including
       a list of keys to use in a given search space.
 
@@ -223,7 +266,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.0.10"
+str_version     = "1.2.0"
 str_name        = "chrispl-search"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -287,10 +330,10 @@ parser.add_argument(
     default = '',
 )
 parser.add_argument(
-    '--searchURL',
-    help    = 'search URL snippet',
+    '--across',
+    help    = 'a metaspace across which to search (files, instances, etc)',
     action  = 'store',
-    dest    = 'str_searchURL',
+    dest    = 'str_across',
     default = 'plugins',
 )
 parser.add_argument(
