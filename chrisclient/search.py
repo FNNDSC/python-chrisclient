@@ -141,6 +141,7 @@ class PluginSearch(object):
         return {
             'status':   b_status,
             'message':  str_message,
+            'CLI':      self.d_args,
             'params':   d_params
         }
 
