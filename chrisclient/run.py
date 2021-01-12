@@ -153,13 +153,13 @@ class PluginRun(object):
                     val         = True
                 if len(l_keyval) == 2:
                     (key, val)  = l_keyval
+                    val         = val.rstrip('"-=')
                 if b_add:
-                    # Remove all white space and other
-                    # leading '=' or '-' chars from
-                    # the key
+                    # For the set [ " - = ], remove any leading/
+                    # trailing hits in the <key> as well as any
+                    # trailing hits in the <val>.
                     key         = "".join(key.split())
-                    key         = key.lstrip('=')
-                    key         = key.lstrip('-')
+                    key         = key.strip('"-=')
                     self.d_CLIargs.update({key: val})
         if b_add:
             str_message     = '%d args parsed' % len(l_args)
