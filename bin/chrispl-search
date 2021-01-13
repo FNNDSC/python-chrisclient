@@ -44,6 +44,7 @@ str_desc        = """
                                 [--across <metaSearchSpace>]            \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
+                                [--onCUBEport <port>]                   \\
                                 [--returnKeyList]                       \\
                                 [--version]                             \\
                                 [--man]                                 \\
@@ -117,6 +118,12 @@ str_desc        = """
         some cases only the address (IP or name) of the ``CUBE`` instance
         needs to be set. This flag is a mechanism to only set the address
         of the target ``CUBE``.
+
+        [--onCUBEport  <port>]
+        Instead of passing a complete JSON object as with ``--onCUBE``, in
+        some cases the port  of the ``CUBE`` instance, often in conjunction
+        with [--onCUBEaddress <address>] needs to be set. This flag is a mechanism 
+        to specifically set the port of the target ``CUBE``.
 
         [--returnKeyList]
         If true, return in the JSON hit structure an element that contains
@@ -249,6 +256,28 @@ str_desc        = """
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0001.dcm
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0000.dcm
 
+    * To get a list of files resources associated with the above plugin INSTANCE id
+        $ chrispl-search --for file_resource --using plugin_inst_id=9 --across links \
+                         --onCUBEaddress localhost --onCUBEport 8333
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/157/PatientF.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/156/PatientE.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/155/PatientD.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/154/PatientC.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/153/PatientB.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/152/PatientA.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/162/jobStatusSummary.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/161/jobStatus.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/160/input.meta.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/159/ex-covid.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/158/ex-covid-ct.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/151/0006.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/150/0005.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/149/0004.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/148/0003.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/147/0002.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/146/0001.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/145/0000.dcm
+
 
     * Pass a ``--jsonReturn`` for full JSON return information, including
       a list of keys to use in a given search space.
@@ -265,7 +294,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.2.8"
+str_version     = "2.0.0"
 str_name        = "chrispl-search"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -284,6 +313,13 @@ parser.add_argument(
     help    = 'the address of a CUBE instance',
     action  = 'store',
     dest    = 'str_CUBEaddress',
+    default = '',
+)
+parser.add_argument(
+    '--onCUBEport',
+    help    = 'the port of a CUBE instance',
+    action  = 'store',
+    dest    = 'str_CUBEport',
     default = '',
 )
 parser.add_argument(
@@ -369,7 +405,8 @@ def postprocessing_do(query, d_result):
     """
     Final postprocessing housekeeping.
     """
-    retCode     :   int      = 1
+    retCode     :   int     = 1
+    t_key       :   tuple   = ()
     if query.d_args['b_json']:
         query.dp.qprint(json.dumps(d_result, indent = 4))
         if len(d_result['target']):
@@ -379,7 +416,8 @@ def postprocessing_do(query, d_result):
             for target in d_result['target']:
                 query.dp.qprint('(searchSubstr:%s)' % query.d_args['str_using'], end='')
                 for hit in target:
-                    query.dp.qprint('%10s %-30s' % (hit['name'], hit['value']),
+                    t_key   = tuple(hit)
+                    query.dp.qprint('%15s %-30s' % (hit[t_key[0]], hit[t_key[1]]),
                                     end='', syslog=False)
                 query.dp.qprint('')
                 retCode = 0
