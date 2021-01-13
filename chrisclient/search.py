@@ -45,6 +45,8 @@ class D(S):
             d_CUBE  = ast.literal_eval("".join(d_sysArgs['str_CUBE'].split()))
         if len(d_sysArgs['str_CUBEaddress']):
             d_CUBE['address']   = d_sysArgs['str_CUBEaddress']
+        if len(d_sysArgs['str_CUBEport']):
+            d_CUBE['port']      = d_sysArgs['str_CUBEport']
         self.state_create(
         {
             "CUBE": d_CUBE,
@@ -166,7 +168,8 @@ class PluginSearch(object):
             if self.d_args['str_across'] == 'plugininstances':
                 str_URL     = 'api/v1/plugins/instances/search/?limit=%d' % \
                                 (limit)
-            if self.d_args['str_across'] == 'files':
+            if self.d_args['str_across'] == 'files' or \
+               self.d_args['str_across'] == 'links':
                 if 'plugin_inst_id' in self.d_args['str_using']:
                     str_id  = self.d_args['str_using'].split('=')[1]
                     if str_id.isnumeric():
@@ -232,20 +235,25 @@ class PluginSearch(object):
         str_message     :   str     = 'search returned no response'
         b_keysListed    :   bool    = False
         l_keys          :   list    = []
+        str_innerList   :   str     = 'data'
+        str_innerKey    :   str     = 'name'
 
+        if self.d_args['str_across'] == 'links':
+            str_innerList   = 'links'
+            str_innerKey    = 'rel'
         if d_search['status']:
             if d_search['response']['collection']['total']:
                 for d_hit in d_search['response']['collection']['items']:
-                    l_data  :   list = d_hit['data']
+                    l_data  :   list = d_hit[str_innerList]
                     if not b_keysListed:
                         for d_el in l_data:
-                            l_keys.append(d_el['name'])
+                            l_keys.append(d_el[str_innerKey])
                         b_keysListed = True
                     l_thistarget     = []
                     for str_desired in self.d_args['str_for'].split(','):
                         l_hit   :   list = list(
                                     filter(
-                                        lambda info: info['name'] == str_desired, l_data
+                                        lambda info: info[str_innerKey] == str_desired, l_data
                                         )
                                     )
                         if len(l_hit):
