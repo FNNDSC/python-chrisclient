@@ -47,6 +47,8 @@ class D(S):
             d_CUBE  = ast.literal_eval("".join(d_sysArgs['str_CUBE'].split()))
         if len(d_sysArgs['str_CUBEaddress']):
             d_CUBE['address']   = d_sysArgs['str_CUBEaddress']
+        if len(d_sysArgs['str_CUBEport']):
+            d_CUBE['port']      = d_sysArgs['str_CUBEport']
         self.state_create(
         {
             "CUBE": d_CUBE,
