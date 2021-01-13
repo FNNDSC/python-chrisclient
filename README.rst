@@ -130,12 +130,12 @@ which will return something similar to:
 Search plugin *files*
 =====================
 
-The actual list of file data associated with the outputs of a plugin instance can also be searched. For instance, find the names of files by searching for the *fname* across ``files`` using ``plugin_inst_id`` of ``2``:
+The actual list of file data associated with the outputs of a plugin instance can also be searched. For instance, search for the names of files by looking for the *fname* across ``files`` using ``plugin_inst_id`` of ``9``:
 
 .. code-block:: bash
 
     chrispl-search --for fname                              \
-                   --using plugin_inst_id=2                 \
+                   --using plugin_inst_id=9                 \
                    --across files                           \
                    --onCUBEaddress megalodon.local
 
@@ -143,10 +143,61 @@ which will return something similar to:
 
 .. code-block:: console
 
-    (searchSubstr:plugin_name=surfer)  id 12 status finishedSuccessfully  plugin_name pl-freesurfer_pp
-    (searchSubstr:plugin_name=surfer)  id 11 status finishedSuccessfully  plugin_name pl-freesurfer_pp
-    (searchSubstr:plugin_name=surfer)  id 10 status finishedSuccessfully  plugin_name pl-freesurfer_pp
-    (searchSubstr:plugin_name=surfer)  id 9  status finishedSuccessfully  plugin_name pl-freesurfer_pp
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientF.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientE.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientD.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientC.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientB.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientA.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/jobStatusSummary.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/jobStatus.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/input.meta.json
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/ex-covid.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/ex-covid-ct.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0006.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0005.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0004.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0003.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0002.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0001.dcm
+        (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0000.dcm
+
+
+Search plugin downloadable *file resources*
+===========================================
+
+Finally, a list of web accessible locations to downloadable files can be found by searching across ``links`` for a ``file_resource`` associated with a given ``plugin_inst_id=9`` (with an example of ``onCUBEaddress`` and ``onCUBEport``:
+
+.. code-block:: bash
+
+    chrispl-search  --for file_resource                     \
+                    --using plugin_inst_id=9                \
+                    --across links                          \
+                    --onCUBEaddress localhost               \
+                    --onCUBEport 8333
+
+which will return something similar to:
+
+.. code-block:: console
+
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/157/PatientF.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/156/PatientE.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/155/PatientD.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/154/PatientC.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/153/PatientB.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/152/PatientA.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/162/jobStatusSummary.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/161/jobStatus.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/160/input.meta.json
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/159/ex-covid.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/158/ex-covid-ct.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/151/0006.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/150/0005.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/149/0004.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/148/0003.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/147/0002.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/146/0001.dcm
+        (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/145/0000.dcm
 
 
 Run
