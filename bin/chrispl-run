@@ -44,6 +44,7 @@ str_desc        = """
                                 [--across <metaSearchSpace>]            \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
+                                [--onCUBEport <port>]                   \\
                                 [--version]                             \\
                                 [--man]                                 \\
                                 [--jsonReturn]                          \\
@@ -93,6 +94,12 @@ str_desc        = """
         some cases only the address (IP or name) of the ``CUBE`` instance
         needs to be set. This flag is a mechanism to only set the address
         of the target ``CUBE``.
+
+        [--onCUBEport  <port>]
+        Instead of passing a complete JSON object as with ``--onCUBE``, in
+        some cases the port  of the ``CUBE`` instance, often in conjunction
+        with [--onCUBEaddress <address>] needs to be set. This flag is a mechanism 
+        to specifically set the port of the target ``CUBE``.
 
         [--across <metaSearchSpace>]
         An optional qualifier that defines a "meta" search space. This is
@@ -158,7 +165,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "1.2.8"
+str_version     = "2.0.0"
 str_name        = "chrispl-run"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -177,6 +184,13 @@ parser.add_argument(
     help    = 'the address of a CUBE instance',
     action  = 'store',
     dest    = 'str_CUBEaddress',
+    default = '',
+)
+parser.add_argument(
+    '--onCUBEport',
+    help    = 'the port of a CUBE instance',
+    action  = 'store',
+    dest    = 'str_CUBEport',
     default = '',
 )
 parser.add_argument(
