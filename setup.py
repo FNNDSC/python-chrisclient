@@ -12,7 +12,7 @@ def readme():
 
 setup(
       name             =   'python-chrisclient',
-      version          =   '2.0.2',
+      version          =   '2.0.4',
       description      =   '(Python) client for the ChRIS API',
       long_description =   readme(),
       author           =   'FNNDSC',

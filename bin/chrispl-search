@@ -257,7 +257,7 @@ str_desc        = """
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0000.dcm
 
     * To get a list of files resources associated with the above plugin INSTANCE id
-        $ chrispl-search --for file_resource --using plugin_inst_id=9 --across links
+        $ chrispl-search --for file_resource --using plugin_inst_id=9 --across links    \\
                          --onCUBEaddress localhost --onCUBEport 8333
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/157/PatientF.dcm
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/156/PatientE.dcm
@@ -294,7 +294,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "2.0.2"
+str_version     = "2.0.4"
 str_name        = "chrispl-search"
 parser          = ArgumentParser(
                     description     = str_desc,
