@@ -195,6 +195,7 @@ class PluginRun(object):
             'str_filterFor':    'key'
         }
         for key in self.d_CLIargs:
+            b_status                    = True
             d_search['str_filterFor']   = '--' + key
             ns                          = Namespace(**d_search)
             self.query                  = search.PluginSearch(self.d_meta, ns)
@@ -204,7 +205,6 @@ class PluginRun(object):
                 str_userCLIvalue        = self.d_CLIargs[key]
                 d_val = next((el for el in l_hits if el['name'] == 'name'))
                 self.d_CLIvals[d_val['value']] = str_userCLIvalue
-                b_status                = True
         return {
             'status':           b_status,
             'CUBEpluginVals':   self.d_CLIvals
@@ -224,11 +224,11 @@ class PluginRun(object):
         if d_argsParse['status']:
             d_CUBEpluginVals = self.pluginArgs_CLIvalsFind()
             if d_CUBEpluginVals['status']:
-                for key in self.d_CLIargs:
+                for key in self.d_CLIvals:
                     self.d_CLItemplate['data'].append(
                         {
                             'name':     key,
-                            'value':    self.d_CLIargs[key]
+                            'value':    self.d_CLIvals[key]
                         }
                     )
                     keyCount += 1
