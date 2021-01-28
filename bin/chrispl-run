@@ -42,6 +42,7 @@ str_desc        = """
         chrispl-run             --plugin <someTemplateDesc>             \\
                                 --args <pluginCLIargs>                  \\
                                 [--across <metaSearchSpace>]            \\
+                                [--filterFor <innerFilterCommaList>]    \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
                                 [--onCUBEport <port>]                   \\
@@ -100,6 +101,22 @@ str_desc        = """
         some cases the port  of the ``CUBE`` instance, often in conjunction
         with [--onCUBEaddress <address>] needs to be set. This flag is a mechanism 
         to specifically set the port of the target ``CUBE``.
+
+        [--filterFor <innerFilterCommaList>]
+        A further filtering of a set of hits. Typically a pattern of `--for`
+        and `--using` can return a list space of hits. The `--filterFor`
+        searches the values of this returned list space for further hits.
+
+        For example, searching `--for flag,name --across parameters` will
+        return the space of CLI flags and names for a given plugin
+        `--using plugin_id=<N>`. This hit return space can be further
+        filtered for a given CLI flag with a `--filterFor ' --in_name'`.
+
+        Note that the filter hit, `' --in_name'` is quoted with an explicit
+        leading space to protect it from interpretation by the module itself.
+
+        Multiple filters can be specified with comma concatenation, i.e.
+        `--filterFor ' --in_name,--out_name'`
 
         [--across <metaSearchSpace>]
         An optional qualifier that defines a "meta" search space. This is
@@ -165,7 +182,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "2.0.4"
+str_version     = "2.2.0"
 str_name        = "chrispl-run"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -241,6 +258,13 @@ parser.add_argument(
     action  = 'store',
     dest    = 'str_across',
     default = 'plugins',
+)
+parser.add_argument(
+    '--filterFor',
+    help    = 'fine tune the list of hits for a value substring',
+    action  = 'store',
+    dest    = 'str_filterFor',
+    default = '',
 )
 parser.add_argument(
     '--verbosity',
