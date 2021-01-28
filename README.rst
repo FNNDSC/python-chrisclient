@@ -204,7 +204,7 @@ Search the space of *parameters* for a plugin id
 
 To get a list of CLI flags, internal name, and help string associated with plugin id 8
 
-.. code-block:: bash
+.. code-block:: console
 
         chrispl-search  --for flag,name,help                \
                         --using plugin_id=8                 \
@@ -232,7 +232,7 @@ Sub filter a parameter space for a single CLI and return the name to POST to CUB
 
 Determine the internal value to POST to CUBE for a given plugin CLI flag: (note this is an *exact* flag / string search -- thus flag filters must have leading '--' where appropriate):
 
-.. code-block:: bash
+.. code-block:: console
 
         chrispl-search      --for flag,name                     \
                             --using plugin_id=8                 \
