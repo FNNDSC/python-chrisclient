@@ -42,6 +42,7 @@ str_desc        = """
         chrispl-search          --for <someField(s)>                    \\
                                 --using <someTemplateDesc>              \\
                                 [--across <metaSearchSpace>]            \\
+                                [--filterFor <innerFilterCommaList>]    \\
                                 [--onCUBE <CUBEjsonDetails>]            \\
                                 [--onCUBEaddress <address>]             \\
                                 [--onCUBEport <port>]                   \\
@@ -77,6 +78,22 @@ str_desc        = """
 
             --using name=pl-fshack
             --using name=dicom,type=ds
+
+        [--filterFor <innerFilterCommaList>]
+        A further filtering of a set of hits. Typically a pattern of `--for`
+        and `--using` can return a list space of hits. The `--filterFor`
+        searches the values of this returned list space for further hits.
+
+        For example, searching `--for flag,name --across parameters` will
+        return the space of CLI flags and names for a given plugin
+        `--using plugin_id=<N>`. This hit return space can be further
+        filtered for a given CLI flag with a `--filterFor ' --in_name'`.
+
+        Note that the filter hit, `' --in_name'` is quoted with an explicit
+        leading space to protect it from interpretation by the module itself.
+
+        Multiple filters can be specified with comma concatenation, i.e.
+        `--filterFor ' --in_name,--out_name'`
 
         [--across <metaSearchSpace>]
         An optional qualifier that defines a "meta" search space. Valid
@@ -167,6 +184,7 @@ str_desc        = """
     * List by name all the DS plugins in a CUBE instance:
 
         $ chrispl-search --for name --using type=ds
+
         (searchSubstr:type=ds)      name pl-pfdo_med2img
         (searchSubstr:type=ds)      name pl-pfdo_mgz2img
         (searchSubstr:type=ds)      name pl-mgz2lut_report
@@ -185,18 +203,21 @@ str_desc        = """
     * List by name all DS plugins that also have 'dicom' in their name:
 
         $ chrispl-search --for name --using type=ds,name=dicom
+
         (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagsub
         (searchSubstr:type=ds,name=dicom)      name pl-pfdicom_tagextract
 
     * Find the ID of the `pl-fshack` plugin:
 
         $ chrispl-search --for id --using name=pl-fshack
+
         (name=pl-fshack)        id      10
 
     * List all the plugins (by passing an empty string to ``name``) by
       name, id, and plugin type:
 
         $ chrispl-search --for name,id,type --using name=''
+
         (searchSubstr:name=)      name pl-pfdo_med2img            id 17   type ds
         (searchSubstr:name=)      name pl-pfdo_mgz2img            id 16   type ds
         (searchSubstr:name=)      name pl-mgz2lut_report          id 15   type ds
@@ -217,9 +238,11 @@ str_desc        = """
         (searchSubstr:name=)      name pl-simplefsapp             id 1    type fs
 
     * Search for the plugin INSTANCE id, status, and full name of plugins
-      that have a substring of "mri" in their names (note the ``--searchURL``):
+      that have a substring of "mri" in their names:
 
-        $ chrispl-search --for id,status,plugin_name --using plugin_name=mri --searchURL plugins/instances
+        $ chrispl-search --for id,status,plugin_name --using plugin_name=mri \\
+                         --across plugininstances
+
         (searchSubstr:plugin_name=mri)  id 8    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
         (searchSubstr:plugin_name=mri)  id 7    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
         (searchSubstr:plugin_name=mri)  id 6    status finishedSuccessfully  plugin_name pl-mri10yr06mo01da_normal
@@ -232,11 +255,13 @@ str_desc        = """
     * Find the status of a specific plugin INSTANCE id (in this case, id=9):
 
         $ chrispl-search --for status --using id=9 --across plugininstances
+
         (searchSubstr:id=9)    status finishedSuccessfully
 
     * To get a list of files created by the above plugin INSTANCE id
 
         $ chrispl-search --for fname --using plugin_inst_id=9 --across files
+
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientF.dcm
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientE.dcm
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/PatientD.dcm
@@ -257,8 +282,11 @@ str_desc        = """
         (searchSubstr:plugin_inst_id=9)     fname chris/feed_9/pl-lungct_9/data/0000.dcm
 
     * To get a list of files resources associated with the above plugin INSTANCE id
-        $ chrispl-search --for file_resource --using plugin_inst_id=9 --across links    \\
+
+        $ chrispl-search --for file_resource --using plugin_inst_id=9       \\
+                         --across links                                     \\
                          --onCUBEaddress localhost --onCUBEport 8333
+
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/157/PatientF.dcm
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/156/PatientE.dcm
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/155/PatientD.dcm
@@ -278,6 +306,38 @@ str_desc        = """
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/146/0001.dcm
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/145/0000.dcm
 
+    * To get a list of CLI flags, internal name, and help string associated
+      with plugin id 8
+        $ chrispl-search --for flag,name,help --using plugin_id=8           \\
+                         --across parameters --onCUBEaddress localhost --onCUBEport 8333
+
+        (searchSubstr:plugin_id=8)  flag --subjectDir            name subjectDir             help directory (relative to <inputDir>) of subjects to process
+        (searchSubstr:plugin_id=8)  flag --in_name               name iname                  help name of the input (raw) file to process (default: brain.mgz)
+        (searchSubstr:plugin_id=8)  flag --out_name              name oname                  help name of the output segmented file
+        (searchSubstr:plugin_id=8)  flag --order                 name order                  help interpolation order
+        (searchSubstr:plugin_id=8)  flag --subject               name subject                help subject(s) to process. This expression is globbed.
+        (searchSubstr:plugin_id=8)  flag --log                   name logfile                help name of logfile (default: deep-seg.log)
+        (searchSubstr:plugin_id=8)  flag --network_sagittal_path name network_sagittal_path  help path to pre-trained sagittal network weights
+        (searchSubstr:plugin_id=8)  flag --network_coronal_path  name network_coronal_path   help path to pre-trained coronal network weights
+        (searchSubstr:plugin_id=8)  flag --network_axial_path    name network_axial_path     help path to pre-trained axial network weights
+        (searchSubstr:plugin_id=8)  flag --clean                 name cleanup                help if specified, clean up segmentation
+        (searchSubstr:plugin_id=8)  flag --no_cuda               name no_cuda                help if specified, do not use GPU
+        (searchSubstr:plugin_id=8)  flag --batch_size            name batch_size             help batch size for inference (default: 8
+        (searchSubstr:plugin_id=8)  flag --simple_run            name simple_run             help simplified run: only analyze one subject
+        (searchSubstr:plugin_id=8)  flag --run_parallel          name run_parallel           help if specified, allows for execute on multiple GPUs
+        (searchSubstr:plugin_id=8)  flag --copyInputImage        name copyInputImage         help if specified, copy input file to output dir.
+
+    * Determine the internal value to POST to CUBE for a given plugin CLI flag:
+      (note this is an *exact* flag / string search -- thus flag filters must
+       have leading '--' where appropriate):
+
+        $ ./chrispl-search --for flag,name --using plugin_id=8              \\
+                           --across parameters                              \\
+                           --onCUBEaddress localhost --onCUBEport 8333      \\
+                           --filterFor " --in_name,--out_name"                                                                         ─╯
+
+        (searchSubstr:plugin_id=8)  flag --in_name               name iname
+        (searchSubstr:plugin_id=8)  flag --out_name              name oname
 
     * Pass a ``--jsonReturn`` for full JSON return information, including
       a list of keys to use in a given search space.
@@ -294,7 +354,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "2.0.4"
+str_version     = "2.2.0"
 str_name        = "chrispl-search"
 parser          = ArgumentParser(
                     description     = str_desc,
@@ -372,6 +432,13 @@ parser.add_argument(
     default = 'plugins',
 )
 parser.add_argument(
+    '--filterFor',
+    help    = 'fine tune the list of hits for a value substring',
+    action  = 'store',
+    dest    = 'str_filterFor',
+    default = '',
+)
+parser.add_argument(
     '--returnKeyList',
     help    = 'return the list of keys in the search space',
     action  = 'store_true',
@@ -407,6 +474,7 @@ def postprocessing_do(query, d_result):
     """
     retCode     :   int     = 1
     t_key       :   tuple   = ()
+    str_line    :   str     = ""
     if query.d_args['b_json']:
         query.dp.qprint(json.dumps(d_result, indent = 4))
         if len(d_result['target']):
@@ -415,11 +483,11 @@ def postprocessing_do(query, d_result):
         if d_result['status']:
             for target in d_result['target']:
                 query.dp.qprint('(searchSubstr:%s)' % query.d_args['str_using'], end='')
+                str_line    = ""
                 for hit in target:
-                    t_key   = tuple(hit)
-                    query.dp.qprint('%15s %-30s' % (hit[t_key[0]], hit[t_key[1]]),
-                                    end='', syslog=False)
-                query.dp.qprint('')
+                    t_key     = tuple(hit)
+                    str_line += '%15s %-30s' % (hit[t_key[0]], hit[t_key[1]])
+                query.dp.qprint(str_line, syslog=False)
                 retCode = 0
     return retCode
 
