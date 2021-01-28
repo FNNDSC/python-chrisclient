@@ -181,6 +181,11 @@ class PluginRun(object):
         This method finds, for each CLI flag, the corresponding value and
         saves this in self.d_CLIvals, key indexed by the name to POST and
         the CLI value.
+
+        One critical exception to the CLI / name lookup is the required
+        CUBE '--previous_id' flag which is not part of a plugin's CLI
+        space, but it required by CUBE to link the plugin to an execution
+        graph.
         """
 
         b_status    : bool          = False
@@ -196,15 +201,18 @@ class PluginRun(object):
         }
         for key in self.d_CLIargs:
             b_status                    = True
-            d_search['str_filterFor']   = '--' + key
-            ns                          = Namespace(**d_search)
-            self.query                  = search.PluginSearch(self.d_meta, ns)
-            d_query                     = self.query.do()
-            if len(d_query['target']):
-                l_hits                  = d_query['target'][0]
-                str_userCLIvalue        = self.d_CLIargs[key]
-                d_val = next((el for el in l_hits if el['name'] == 'name'))
-                self.d_CLIvals[d_val['value']] = str_userCLIvalue
+            if key != "previous_id":
+                d_search['str_filterFor']   = '--' + key
+                ns                          = Namespace(**d_search)
+                self.query                  = search.PluginSearch(self.d_meta, ns)
+                d_query                     = self.query.do()
+                if len(d_query['target']):
+                    l_hits                  = d_query['target'][0]
+                    str_userCLIvalue        = self.d_CLIargs[key]
+                    d_val = next((el for el in l_hits if el['name'] == 'name'))
+                    self.d_CLIvals[d_val['value']] = str_userCLIvalue
+            if key == 'previous_id':
+                self.d_CLIvals['previous_id'] = self.d_CLIargs['previous_id']
         return {
             'status':           b_status,
             'CUBEpluginVals':   self.d_CLIvals
