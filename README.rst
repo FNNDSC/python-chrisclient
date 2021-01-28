@@ -15,7 +15,7 @@ This repository contains various python scripts and modules that provide a rich 
 Overview
 --------
 
-At time of writing (late 2020), two scripts/modules are in production:
+At time of writing (early 2021), two scripts/modules are in production:
 
 - a plugin search utility
 - a plugin run schedule utility
@@ -166,7 +166,7 @@ which will return something similar to:
 Search plugin downloadable *file resources*
 ===========================================
 
-Finally, a list of web accessible locations to downloadable files can be found by searching across ``links`` for a ``file_resource`` associated with a given ``plugin_inst_id=9`` (with an example of ``onCUBEaddress`` and ``onCUBEport``:
+A list of web accessible locations to downloadable files can be found by searching across ``links`` for a ``file_resource`` associated with a given ``plugin_inst_id=9`` (with an example of ``onCUBEaddress`` and ``onCUBEport``:
 
 .. code-block:: bash
 
@@ -199,6 +199,49 @@ which will return something similar to:
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/146/0001.dcm
         (searchSubstr:plugin_inst_id=9)  file_resource http://localhost:8333/api/v1/files/145/0000.dcm
 
+Search the space of *parameters* for a plugin id
+================================================
+
+To get a list of CLI flags, internal name, and help string associated with plugin id 8
+
+.. code-block:: bash
+
+        chrispl-search  --for flag,name,help                \
+                        --using plugin_id=8                 \
+                        --across parameters                 \
+                        --onCUBEaddress localhost --onCUBEport 8333
+
+        (searchSubstr:plugin_id=8)  flag --subjectDir            name subjectDir             help directory (relative to <inputDir>) of subjects to process
+        (searchSubstr:plugin_id=8)  flag --in_name               name iname                  help name of the input (raw) file to process (default: brain.mgz)
+        (searchSubstr:plugin_id=8)  flag --out_name              name oname                  help name of the output segmented file
+        (searchSubstr:plugin_id=8)  flag --order                 name order                  help interpolation order
+        (searchSubstr:plugin_id=8)  flag --subject               name subject                help subject(s) to process. This expression is globbed.
+        (searchSubstr:plugin_id=8)  flag --log                   name logfile                help name of logfile (default: deep-seg.log)
+        (searchSubstr:plugin_id=8)  flag --network_sagittal_path name network_sagittal_path  help path to pre-trained sagittal network weights
+        (searchSubstr:plugin_id=8)  flag --network_coronal_path  name network_coronal_path   help path to pre-trained coronal network weights
+        (searchSubstr:plugin_id=8)  flag --network_axial_path    name network_axial_path     help path to pre-trained axial network weights
+        (searchSubstr:plugin_id=8)  flag --clean                 name cleanup                help if specified, clean up segmentation
+        (searchSubstr:plugin_id=8)  flag --no_cuda               name no_cuda                help if specified, do not use GPU
+        (searchSubstr:plugin_id=8)  flag --batch_size            name batch_size             help batch size for inference (default: 8
+        (searchSubstr:plugin_id=8)  flag --simple_run            name simple_run             help simplified run: only analyze one subject
+        (searchSubstr:plugin_id=8)  flag --run_parallel          name run_parallel           help if specified, allows for execute on multiple GPUs
+        (searchSubstr:plugin_id=8)  flag --copyInputImage        name copyInputImage         help if specified, copy input file to output dir.
+
+Sub filter a parameter space for a single CLI and return the name to POST to CUBE
+=================================================================================
+
+Determine the internal value to POST to CUBE for a given plugin CLI flag: (note this is an *exact* flag / string search -- thus flag filters must have leading '--' where appropriate):
+
+.. code-block:: bash
+
+        chrispl-search      --for flag,name                     \
+                            --using plugin_id=8                 \
+                            --across parameters                 \
+                            --filterFor " --in_name,--out_name" \
+                            --onCUBEaddress localhost --onCUBEport 8333
+
+        (searchSubstr:plugin_id=8)  flag --in_name               name iname
+        (searchSubstr:plugin_id=8)  flag --out_name              name oname
 
 Run
 ---
