@@ -41,12 +41,15 @@ class D(S):
         }
         for k,v in kwargs.items():
             if k == 'args': d_sysArgs   = v
-        if len(d_sysArgs['str_CUBE']):
-            d_CUBE  = ast.literal_eval("".join(d_sysArgs['str_CUBE'].split()))
-        if len(d_sysArgs['str_CUBEaddress']):
-            d_CUBE['address']   = d_sysArgs['str_CUBEaddress']
-        if len(d_sysArgs['str_CUBEport']):
-            d_CUBE['port']      = d_sysArgs['str_CUBEport']
+        if 'str_CUBE' in d_sysArgs:
+            if len(d_sysArgs['str_CUBE']):
+                d_CUBE  = ast.literal_eval("".join(d_sysArgs['str_CUBE'].split()))
+        if 'str_CUBEaddress' in d_sysArgs:
+            if len(d_sysArgs['str_CUBEaddress']):
+                d_CUBE['address']   = d_sysArgs['str_CUBEaddress']
+        if 'str_CUBEport' in d_sysArgs:
+            if len(d_sysArgs['str_CUBEport']):
+                d_CUBE['port']      = d_sysArgs['str_CUBEport']
         self.state_create(
         {
             "CUBE": d_CUBE,
@@ -92,10 +95,14 @@ class PluginSearch(object):
             desc        = d_meta['desc'],
             args        = vars(*args)
         )
+        if 'verbosity' in self.d_args:  verbosity   = self.d_args['verbosity']
+        else:                           verbosity   = 0
+        if 'b_syslog' in self.d_args:   b_syslog    = self.d_args['b_syslog']
+        else:                           b_syslog    = False
         self.dp         = pfmisc.debug(
-            verbosity   = int(self.d_args['verbosity']),
+            verbosity   = int(verbosity),
             within      = d_meta['name'],
-            syslog      = self.d_args['b_syslog'],
+            syslog      = b_syslog,
             colorize    = self.state.T.cat('/this/colorize')
         )
         # Check the IP in the state structure and optionally update
@@ -161,13 +168,25 @@ class PluginSearch(object):
             """
             str_URL         : str   = ""
             str_id          : str   = ""
-            limit           : int   = 500
+            limit           : int   = 50000
 
+            # search across plugins space
             if self.d_args['str_across'] == 'plugins':
                 str_URL     = 'api/v1/plugins/search/?limit=%d' % limit
+            # search across plugininstance space
             if self.d_args['str_across'] == 'plugininstances':
                 str_URL     = 'api/v1/plugins/instances/search/?limit=%d' % \
                                 (limit)
+
+            # search across plugin parameter space (given plugin_id)
+            if self.d_args['str_across'] == 'parameters':
+                if 'plugin_id' in self.d_args['str_using']:
+                    str_id  = self.d_args['str_using'].split('=')[1]
+                    if str_id.isnumeric():
+                        str_URL = 'api/v1/plugins/%s/parameters/?limit=%d' % \
+                                    (str_id, limit)
+
+            # search across plugin instance file space (given plugin_inst_id)
             if self.d_args['str_across'] == 'files' or \
                self.d_args['str_across'] == 'links':
                 if 'plugin_inst_id' in self.d_args['str_using']:
@@ -259,7 +278,14 @@ class PluginSearch(object):
                         if len(l_hit):
                             l_thistarget.append(l_hit[0])
                             b_status    = True
-                    l_target.append(l_thistarget)
+                    if len(self.d_args['str_filterFor']):
+                        l_filter = self.d_args['str_filterFor'].split(',')
+                        if not len([d for d in l_thistarget     \
+                                        for filt in l_filter    \
+                                            if d['value'] == filt.strip()]):
+                            l_thistarget    = []
+                    if len(l_thistarget):
+                        l_target.append(l_thistarget)
 
         if not len(l_target):
             str_message     = "No targets found"
