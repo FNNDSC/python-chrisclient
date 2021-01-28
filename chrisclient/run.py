@@ -102,6 +102,7 @@ class PluginRun(object):
         # to be scheduled/run
         self.d_args         : dict  = vars(*args)
         self.d_CLIargs      : dict  = {}
+        self.d_CLIvals      : dict  = {}
         self.d_CLItemplate  : dict  = {}
 
         # Some additional "massaging" from these CLI
@@ -171,29 +172,72 @@ class PluginRun(object):
             'CLIdict':  self.d_CLIargs
         }
 
+    def pluginArgs_CLIvalsFind(self):
+        """
+        The plugin has a pattern of CLI flags. These flags are associated
+        with a variable inside the plugin argparse code. CUBE requires that
+        args are POSTed to this variable name, NOT the CLI string.
+
+        This method finds, for each CLI flag, the corresponding value and
+        saves this in self.d_CLIvals, key indexed by the name to POST and
+        the CLI value.
+        """
+
+        b_status    : bool          = False
+        l_hits      : list          = []
+        d_val       : dict          = {}
+        d_query     : dict          = {}
+        d_search    : dict          = {
+            'str_for':          'flag,name',
+            'str_using':        'plugin_id=%s' % self.str_pluginID,
+            'str_across':       'parameters',
+            'str_CUBE':         self.d_args['str_CUBE'],
+            'str_filterFor':    'key'
+        }
+        for key in self.d_CLIargs:
+            d_search['str_filterFor']   = '--' + key
+            ns                          = Namespace(**d_search)
+            self.query                  = search.PluginSearch(self.d_meta, ns)
+            d_query                     = self.query.do()
+            if len(d_query['target']):
+                l_hits                  = d_query['target'][0]
+                str_userCLIvalue        = self.d_CLIargs[key]
+                d_val = next((el for el in l_hits if el['name'] == 'name'))
+                self.d_CLIvals[d_val['value']] = str_userCLIvalue
+                b_status                = True
+        return {
+            'status':           b_status,
+            'CUBEpluginVals':   self.d_CLIvals
+        }
+
     def pluginArgs_templateCreate(self, d_argsParse):
         """
         Create a collectio+json template from the intenal
         plugin argument dictionary
         """
-        b_status    : bool  = True
+        b_status            : bool  = True
+        d_CUBEpluginVals    : dict  = {}
         self.d_CLItemplate  = {'data' : []}
-        str_message : str   = 'template creation failed due to earlier error'
-        keyCount    : int   = 0
+        str_message         : str   = 'template creation failed due to earlier error'
+        keyCount            : int   = 0
 
         if d_argsParse['status']:
-            for key in self.d_CLIargs:
-                self.d_CLItemplate['data'].append(
-                    {
-                        'name':     key,
-                        'value':    self.d_CLIargs[key]
-                    }
-                )
-                keyCount += 1
-        if b_status:
-            str_message  = '%s key(s) parsed into template' % keyCount
+            d_CUBEpluginVals = self.pluginArgs_CLIvalsFind()
+            if d_CUBEpluginVals['status']:
+                for key in self.d_CLIargs:
+                    self.d_CLItemplate['data'].append(
+                        {
+                            'name':     key,
+                            'value':    self.d_CLIargs[key]
+                        }
+                    )
+                    keyCount += 1
+        if d_CUBEpluginVals['status']:
+            str_message     = '%s key(s) parsed into template' % keyCount
+        else:
+            str_message     = 'Finding match between CLI flags and CUBE variables failed.'
         return {
-            'status':       b_status,
+            'status':       d_CUBEpluginVals['status'],
             'message':      str_message,
             'template':     self.d_CLItemplate,
             'argsParse':    d_argsParse
