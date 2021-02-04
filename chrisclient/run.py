@@ -182,14 +182,15 @@ class PluginRun(object):
         saves this in self.d_CLIvals, key indexed by the name to POST and
         the CLI value.
 
-        One critical exception to the CLI / name lookup is the required
-        CUBE '--previous_id' flag which is not part of a plugin's CLI
-        space, but it required by CUBE to link the plugin to an execution
-        graph.
+        Some exceptions to the CLI / name lookup can be defined. These
+        are not subject to the indirect value calculation but are passed
+        directly to CUBE. Typical exceptions include '--previous_id' and
+        '--title'.
         """
 
         b_status    : bool          = False
         l_hits      : list          = []
+        l_directArg : list          = []
         d_val       : dict          = {}
         d_query     : dict          = {}
         d_search    : dict          = {
@@ -199,9 +200,10 @@ class PluginRun(object):
             'str_CUBE':         self.d_args['str_CUBE'],
             'str_filterFor':    'key'
         }
+        l_directArg = ["previous_id", "title"]
         for key in self.d_CLIargs:
-            b_status                    = True
-            if key != "previous_id":
+            b_status                        = True
+            if key not in l_directArg:
                 d_search['str_filterFor']   = '--' + key
                 ns                          = Namespace(**d_search)
                 self.query                  = search.PluginSearch(self.d_meta, ns)
@@ -211,8 +213,10 @@ class PluginRun(object):
                     str_userCLIvalue        = self.d_CLIargs[key]
                     d_val = next((el for el in l_hits if el['name'] == 'name'))
                     self.d_CLIvals[d_val['value']] = str_userCLIvalue
-            if key == 'previous_id':
-                self.d_CLIvals['previous_id'] = self.d_CLIargs['previous_id']
+            if key in l_directArg:
+                self.d_CLIvals[key] = self.d_CLIargs[key]
+            # if key == 'previous_id':
+            #     self.d_CLIvals['previous_id'] = self.d_CLIargs['previous_id']
         return {
             'status':           b_status,
             'CUBEpluginVals':   self.d_CLIvals
