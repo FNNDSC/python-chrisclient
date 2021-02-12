@@ -182,7 +182,7 @@ str_defIP   = [l for l in (
                           socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 
-str_version     = "2.2.8"
+str_version     = "2.2.10"
 str_name        = "chrispl-run"
 parser          = ArgumentParser(
                     description     = str_desc,
