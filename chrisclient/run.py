@@ -184,8 +184,8 @@ class PluginRun(object):
 
         Some exceptions to the CLI / name lookup can be defined. These
         are not subject to the indirect value calculation but are passed
-        directly to CUBE. Typical exceptions include '--previous_id' and
-        '--title'.
+        directly to CUBE. Typical exceptions include '--previous_id' along
+        with '--title' and '--compute_resource_name'.
         """
 
         b_status    : bool          = False
@@ -200,7 +200,7 @@ class PluginRun(object):
             'str_CUBE':         self.d_args['str_CUBE'],
             'str_filterFor':    'key'
         }
-        l_directArg = ["previous_id", "title"]
+        l_directArg = ["previous_id", "title", "compute_resource_name"]
         for key in self.d_CLIargs:
             b_status                        = True
             if key not in l_directArg:
@@ -357,7 +357,9 @@ class PluginRun(object):
         # First, find the plugin ID for the desired plugin
         # to run
         d_query             = self.query.do()
-        if len(d_query['target']) == 1:
+        if len(d_query['target']) >= 1:
+            if len(d_query['target'] > 1):
+                str_message     += "multiple hits found, using first\n"
             d_targetID          = d_query['target'][0][0]
             self.str_pluginID   = d_targetID['value']
 
@@ -370,12 +372,12 @@ class PluginRun(object):
                                 )
                             )
             if d_run['status']:
-                str_message = 'plugin scheduled successfully'
+                str_message += 'plugin scheduled successfully'
                 b_status    = True
             else:
-                str_message = 'plugin run NOT scheduled'
+                str_message += 'plugin run NOT scheduled -- some error returned'
         else:
-            str_message     = "plugin query MUST return a single hit"
+            str_message     = "no valid plugin found"
         return {
             'status':       b_status,
             'query':        d_query,
