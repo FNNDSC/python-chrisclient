@@ -358,7 +358,7 @@ class PluginRun(object):
         # to run
         d_query             = self.query.do()
         if len(d_query['target']) >= 1:
-            if len(d_query['target'] > 1):
+            if len(d_query['target']) > 1:
                 str_message     += "multiple hits found, using first\n"
             d_targetID          = d_query['target'][0][0]
             self.str_pluginID   = d_targetID['value']
