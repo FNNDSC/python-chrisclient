@@ -46,5 +46,5 @@ class ClientTests(TestCase):
         Test whether get_plugins method can get a list of plugin representations
         from CUBE given query search parameters.
         """
-        response = self.client.get_plugins({'name_exact': "simplefsapp"})
-        self.assertEqual(response['data'][0]['name'], "simplefsapp")
+        response = self.client.get_plugins({'name_exact': "pl-dircopy"})
+        self.assertEqual(response['data'][0]['name'], "pl-dircopy")

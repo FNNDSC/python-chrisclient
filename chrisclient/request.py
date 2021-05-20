@@ -64,18 +64,18 @@ class Request(object):
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
 
-    def _post_put(self, request_method, url, data, descriptor_file=None):
+    def _post_put(self, request_method, url, data, fname=None):
         """
         Internal method to make either a POST or PUT request to CUBE.
         """
-        if descriptor_file is None:
+        if fname is None:
             headers = {'Content-Type': self.content_type, 'Accept': self.content_type}
             files = None
             data = json.dumps(self.makeTemplate(data))
         else:
             # this is a multipart request
             headers = None
-            files = {'descriptor_file': descriptor_file}
+            files = {'fname': fname}
         try:
             if self.username or self.password:
                 r = request_method(url, files=files, data=data,

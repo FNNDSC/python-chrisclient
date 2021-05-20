@@ -32,7 +32,7 @@ install:
 before_script:
   - git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd
   - cd ChRIS_ultron_backEnd
-  - ./docker-make.sh -U -I -i
+  - ./make.sh -s -U -I -i
   - docker-compose -f docker-compose_dev.yml exec chris_dev sh -c 'while ! curl -sSf http://localhost:8000/api/v1/users/ 2> /dev/null; do sleep 5; done;'
   - cd ../
 

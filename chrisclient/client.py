@@ -78,7 +78,7 @@ class Client(object):
 
     def get_plugin_by_id(self, id):
         """
-        Get a plugin's data (descriptors) given its ChRIS store id.
+        Get a plugin's data (descriptors) given its ChRIS id.
         """
         search_params = {'id': id}
         result = self.get_plugins(search_params)
@@ -89,7 +89,7 @@ class Client(object):
 
     def get_plugin_parameters(self, plugin_id, params=None):
         """
-        Get a plugin's paginated parameters given its ChRIS store id.
+        Get a plugin's paginated parameters given its ChRIS id.
         """
         if not self.plugins_url: self.set_urls()
         coll = self._fetch_resource(self.plugins_url, {'id': plugin_id})
@@ -138,6 +138,43 @@ class Client(object):
         coll = req.post(self.service_files_url, data)
         result = req.get_data_from_collection(coll)
         return result['data'][0]
+
+    def upload_file(self, upload_path, fname):
+        """
+        Upload a file to the user's uploads in CUBE. The fname argument can be a string
+        indicating a local file path or a file handler.
+        """
+        if not self.uploaded_files_url: self.set_urls()
+        if isinstance(fname, str):
+            with open(fname, 'rb') as f:
+                file_contents = f.read()
+        else:
+            file_contents = fname.read()
+        req = Request(self.username, self.password, self.content_type, self.timeout)
+        data = {'upload_path': upload_path}
+        coll = req.post(self.uploaded_files_url, data, file_contents)
+        result = req.get_data_from_collection(coll)
+        return result['data'][0]
+
+    def get_uploaded_files(self, search_params=None):
+        """
+        Get a paginated list of uploaded files data (descriptors) given query search
+        parameters. If no search parameters is given then get the default first page.
+        """
+        if not self.uploaded_files_url: self.set_urls()
+        coll = self._fetch_resource(self.uploaded_files_url, search_params)
+        return Request.get_data_from_collection(coll)
+
+    def delete_uploaded_file(self, id):
+        """
+        Delete an existing uploaded file.
+        """
+        if not self.uploaded_files_url: self.set_urls()
+        search_params = {'id': id}
+        coll = self._fetch_resource(self.uploaded_files_url, search_params)
+        file_url = coll.items[0].href
+        req = Request(self.username, self.password, self.content_type, self.timeout)
+        req.delete(file_url)
 
     def _fetch_resource(self, url, search_params=None):
         """
