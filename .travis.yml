@@ -41,8 +41,6 @@ script:
   - python setup.py nosetests
 
 after_script:
-  - cd ChRIS_ultron_backEnd
-  - ./unmake.sh
   - docker swarm leave --force
 
 notifications:
