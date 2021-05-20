@@ -2,13 +2,13 @@ language: python
 dist: bionic
 sudo: required
 python:
-  - "3.5"
+  - "3.7"
 
 services:
   - docker
 
 env:
-  DOCKER_COMPOSE_VERSION: 1.24.0
+  DOCKER_COMPOSE_VERSION: 1.27.0
 
 before_install:
   # update docker
@@ -30,6 +30,7 @@ install:
 
 # get CUBE up and ready to accept connections
 before_script:
+  - docker swarm init --advertise-addr 127.0.0.1
   - git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd
   - cd ChRIS_ultron_backEnd
   - ./make.sh -s -U -I -i
@@ -38,6 +39,11 @@ before_script:
 
 script:
   - python setup.py nosetests
+
+after_script:
+  - cd ChRIS_ultron_backEnd
+  - ./unmake.sh
+  - docker swarm leave --force
 
 notifications:
   slack: fnndsc:gGPIVAOtMikWomA1EKrVYIjO
