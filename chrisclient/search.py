@@ -230,9 +230,13 @@ class PluginSearch(object):
                     b_status        = True
                     str_message     = "CUBE call returned a response"
                     d_resp          = resp.json()
+                    if 'error' in d_resp['collection']:
+                        b_status    = False
+                        str_message = d_resp['collection']['error']
                 except (requests.exceptions.Timeout,
                         requests.exceptions.RequestException) as e:
                     logging.error(str(e))
+                    b_status        = False
                     str_message     = "CUBE call returned some error"
             else:
                 str_message         = "Unable to construct a valid service URL. Check if context makes sense."
