@@ -10,17 +10,19 @@ A python client for the ChRIS API.
 Quick Overview
 --------------
 
-This repository contains various python scripts and modules that provide a rich client experience for interacting with a ``CUBE`` backend instance. Interaction is typically either via the command line interface (CLI) or directly in python using relevant modules.
+This repository contains various python scripts and modules that provide a rich client
+experience for interacting with a ``CUBE`` backend instance. Interaction is either via
+the command line interface (CLI) or through a Python programmatic interface using
+relevant modules.
 
 Overview
 --------
 
-At time of writing (early 2021), two scripts/modules are in production:
+At time of writing (early 2022), three scripts/modules are in production:
 
-- a plugin search utility
-- a plugin run schedule utility
-
-Note that in the instructions below, the details of a ``CUBE`` instance are passed in a JSON structure using the ``--onCUBE`` flag. In many cases you might only want to pass the address of a ``CUBE`` instance. For this purpose, the ``--onCUBEaddress`` can be used that will only set the address and keep other default information intact.
+- a general CUBE client
+- a more specific plugin search utility
+- a more specific plugin run schedule utility
 
 Installation
 ------------
@@ -31,8 +33,93 @@ Use the ``PyPI``, Luke!
 
    pip install -U python-chrisclient
 
+
+General CUBE client usage
+-------------------------
+
+Python programmatic interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instantiate the client:
+
+.. code-block:: python
+
+    from chrisclient import client
+
+    cl = client.Client('http://localhost:8000/api/v1/', 'cube', 'cube1234')
+
+Get plugins given search parameters:
+
+.. code-block:: python
+
+    search_params = {'name': 'pl-dircopy'}
+    result = cl.get_plugins(search_params)
+
+Get a plugin by id:
+
+.. code-block:: python
+
+    plugin_id = 1
+    response = cl.get_plugin_by_id(plugin_id)
+
+Get a plugin's parameters:
+
+.. code-block:: python
+
+    plugin_id = 1
+    response = cl.get_plugin_parameters(plugin_id, {'limit': 50, 'offset':0})
+
+These retrieving operations are supported for all other high level resources such as
+feeds, pipelines, plugin instances and workflows.
+
+
+Standalone CLI client tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+List plugins:
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugin offset==0 limit==2 --verbose
+
+List pipelines:
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list pipeline --verbose
+
+List plugin instances:
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugininstance offset==0 limit==1
+
+Create plugin instance (run plugin):
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add plugininstance --pluginid 3 --instancedata '{"previous_id": 1, "dir": "cube/uploads"}'
+
+Create pipeline:
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add pipeline --pipelinedata '{"name": "Pipeline1", "plugin_tree": "[{\"plugin_id\": 2, \"previous_index\": null}, {\"plugin_id\": 2, \"previous_index\": 0}]"}'
+
+Create workflow (run pipeline):
+
+.. code-block:: bash
+
+    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add workflow --pipelineid 2 --workflowdata '{"previous_plugin_inst_id": 1, "nodes_info": "[{\"piping_id\": 3, \"compute_resource_name\": \"host\"}, {\"piping_id\": 4, \"compute_resource_name\": \"host\"}, {\"piping_id\": 5, \"compute_resource_name\": \"host\"}]"}'
+
+
 Search
 ------
+
+Note that in the instructions below, the details of a ``CUBE`` instance are passed in a JSON structure
+using the ``--onCUBE`` flag. In many cases you might only want to pass the address of a ``CUBE`` instance.
+For this purpose, the ``--onCUBEaddress`` can be used that will only set the address and keep other default
+information intact.
 
 The plugin space (plugin ``id`` and plugin ``instance id`` ) in a ``CUBE`` instance can be searched using the ``chrispl-search`` script. This returns information either in tabular text form or a richer JSON payload. The ``search.py`` module is of course suitable for inclusion into other scripts/projects.
 

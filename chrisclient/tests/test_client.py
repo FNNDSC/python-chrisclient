@@ -29,8 +29,8 @@ class ClientTests(TestCase):
         representations for the given plugin from CUBE.
         """
         plugin_id = 1
-        response = self.client.get_plugin_parameters(plugin_id)
-        print('response:', response)
+        response = self.client.get_plugin_parameters(plugin_id,
+                                                     {'limit': 50, 'offset': 0})
         self.assertEqual(response['data'][0]['name'], "dir")
 
     def test_get_plugins_with_no_args(self):
@@ -48,3 +48,55 @@ class ClientTests(TestCase):
         """
         response = self.client.get_plugins({'name_exact': "pl-dircopy"})
         self.assertEqual(response['data'][0]['name'], "pl-dircopy")
+
+    def test_create_plugin_instance(self):
+        """
+        Test whether create_plugin_instance method can create a new plugin instance
+        through the REST API.
+        """
+        plugin_id = 1
+        data = {
+            'title': 'Test plugin instance',
+            'dir': self.username + '/'
+        }
+        response = self.client.create_plugin_instance(plugin_id, data)
+        self.assertEqual(response['title'], data['title'])
+
+    def test_get_pipeline_by_id(self):
+        """
+        Test whether get_pipeline_by_id method can get a pipeline representation from
+        CUBE.
+        """
+        response = self.client.get_pipeline_by_id(2)
+        self.assertEqual(response['id'], 2)
+
+    def test_get_pipeline_default_parameters(self):
+        """
+        Test whether get_pipeline_default_parameters method can get the list of all
+        pipeline parameter representations for the given pipeline from CUBE.
+        """
+        pipeline_id = 2
+        response = self.client.get_pipeline_default_parameters(pipeline_id,
+                                                               {'limit': 50, 'offset': 0})
+        self.assertEqual(response['total'], 15)
+
+    def test_create_workflow(self):
+        """
+        Test whether create_workflow method can create a new workflow through the REST
+        API.
+        """
+        pipeline_id = 2
+        nodes = [
+            {"piping_id": 3, "compute_resource_name": "host",
+             "plugin_parameter_defaults": [{"name": "prefix", "default": "test"},
+                                           {"name": "dummyInt", "default": 3}]},
+            {"piping_id": 4, "compute_resource_name": "host"},
+            {"piping_id": 5, "compute_resource_name": "host"}
+        ]
+        data = {
+            "previous_plugin_inst_id": 1,
+            'nodes_info': json.dumps(nodes)
+        }
+        response = self.client.create_workflow(pipeline_id, data)
+        ids = response['created_plugin_inst_ids'].split(',')
+        self.assertEqual(len(ids), 3)

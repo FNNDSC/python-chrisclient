@@ -1,20 +1,15 @@
-import sys
 
-# Make sure we are running python3.5+
-if 10 * sys.version_info[0] + sys.version_info[1] < 35:
-    sys.exit("Sorry, only Python 3.5+ is supported.")
-
+from os import path
 from setuptools import setup
 
-def readme():
-    with open('README.rst') as f:
-        return f.read()
+with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
+    readme = f.read()
 
 setup(
       name             =   'python-chrisclient',
-      version          =   '2.3.2',
+      version          =   '2.4.0',
       description      =   '(Python) client for the ChRIS API',
-      long_description =   readme(),
+      long_description =   readme,
       author           =   'FNNDSC',
       author_email     =   'dev@babymri.org',
       url              =   'https://github.com/FNNDSC/python-chrisclient',
@@ -24,5 +19,6 @@ setup(
       tests_require    =   ['nose'],
       scripts          =   ['bin/chrisclient', 'bin/chrispl-run', 'bin/chrispl-search'],
       license          =   'MIT',
-      zip_safe=False
+      zip_safe         =   False,
+      python_requires  =   '>=3.7'
 )
