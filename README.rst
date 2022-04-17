@@ -80,7 +80,7 @@ from the pipeline:
 
     pipeline_id = 2
     # attempt to fetch all parameters in a single request by setting a very high limit
-    response = cl.get_plugin_parameters(pipeline_id, {'limit': 100, 'offset':0})
+    response = cl.get_pipeline_default_parameters(pipeline_id, {'limit': 100, 'offset':0})
     nodes = cl.compute_workflow_nodes_info(response['data'])
     response = cl.create_workflow(pipeline_id, {'previous_plugin_inst_id': 1, 'nodes_info': json.dumps(nodes)})
 
