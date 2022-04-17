@@ -53,7 +53,7 @@ Get plugins given search parameters:
 .. code-block:: python
 
     search_params = {'name': 'pl-dircopy'}
-    result = cl.get_plugins(search_params)
+    response = cl.get_plugins(search_params)
 
 Get a plugin by id:
 
@@ -73,6 +73,18 @@ These retrieving operations are supported for all other high level resources suc
 feeds, pipelines, plugin instances and workflows.
 
 
+Get a pipeline's default parameters and nodes data structure and then run a workflow
+from the pipeline:
+
+.. code-block:: python
+
+    pipeline_id = 2
+    # attempt to fetch all parameters in a single request by setting a very high limit
+    response = cl.get_plugin_parameters(pipeline_id, {'limit': 100, 'offset':0})
+    nodes = cl.compute_workflow_nodes_info(response['data'])
+    response = cl.create_workflow(pipeline_id, {'previous_plugin_inst_id': 1, 'nodes_info': json.dumps(nodes)})
+
+
 Standalone CLI client tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -80,37 +92,37 @@ List plugins:
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugin offset==0 limit==2 --verbose
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugin offset==0 limit==2 --verbose
 
 List pipelines:
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list pipeline --verbose
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list pipeline --verbose
 
 List plugin instances:
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugininstance offset==0 limit==1
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugininstance offset==0 limit==1
 
 Create plugin instance (run plugin):
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add plugininstance --pluginid 3 --instancedata '{"previous_id": 1, "dir": "cube/uploads"}'
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add plugininstance --pluginid 3 --instancedata '{"previous_id": 1, "dir": "cube/uploads"}'
 
 Create pipeline:
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add pipeline --pipelinedata '{"name": "Pipeline1", "plugin_tree": "[{\"plugin_id\": 2, \"previous_index\": null}, {\"plugin_id\": 2, \"previous_index\": 0}]"}'
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add pipeline --pipelinedata '{"name": "Pipeline1", "plugin_tree": "[{\"plugin_id\": 2, \"previous_index\": null}, {\"plugin_id\": 2, \"previous_index\": 0}]"}'
 
 Create workflow (run pipeline):
 
 .. code-block:: bash
 
-    $> chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add workflow --pipelineid 2 --workflowdata '{"previous_plugin_inst_id": 1, "nodes_info": "[{\"piping_id\": 3, \"compute_resource_name\": \"host\"}, {\"piping_id\": 4, \"compute_resource_name\": \"host\"}, {\"piping_id\": 5, \"compute_resource_name\": \"host\"}]"}'
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add workflow --pipelineid 2 --workflowdata '{"previous_plugin_inst_id": 1, "nodes_info": "[{\"piping_id\": 3, \"compute_resource_name\": \"host\"}, {\"piping_id\": 4, \"compute_resource_name\": \"host\"}, {\"piping_id\": 5, \"compute_resource_name\": \"host\"}]"}'
 
 
 Search

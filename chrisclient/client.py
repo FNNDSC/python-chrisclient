@@ -232,6 +232,39 @@ class Client(object):
         result = req.get_data_from_collection(coll)
         return result['data'][0]
 
+    def compute_workflow_nodes_info(self, pipeline_default_parameters,
+                                    include_all_defaults=False):
+        """
+        Helper method to create the nodes_info data structure required to create a
+        workflow from a pipeline's default parameters data returned by the
+        get_pipeline_default_parameters. If include_all_defaults is set to True
+        then non-null parameters are also included in the result.
+        """
+        pipings_dict = {}
+        for default_param in pipeline_default_parameters:
+            piping_id = default_param['plugin_piping_id']
+            if piping_id not in pipings_dict:
+                pipings_dict[piping_id] = {
+                    'piping_id': piping_id,
+                    'previous_piping_id': default_param['previous_plugin_piping_id'],
+                    'compute_resource_name': 'host',
+                    'title': '',
+                    'plugin_parameter_defaults': []
+                }
+            if default_param['value'] is None or include_all_defaults:
+                pipings_dict[piping_id]['plugin_parameter_defaults'].append(
+                    {
+                        'name': default_param['param_name'],
+                        'default': default_param['value']
+                    }
+                )
+        nodes_info = []
+        for piping_id in pipings_dict:
+            if not pipings_dict[piping_id]['plugin_parameter_defaults']:
+                del pipings_dict[piping_id]['plugin_parameter_defaults']
+            nodes_info.append(pipings_dict[piping_id])
+        return nodes_info
+
     def get_pacs_files(self, search_params=None):
         """
         Get a paginated list of PACS files (data descriptors) given query search

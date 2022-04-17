@@ -115,15 +115,16 @@ if args.subparser_name == 'list':
     }
     if resource_name not in methods:
         raise NotImplementedError(f"'list' not implemented for {resource_name} yet")
+
     search_params = {}
     for param_str in args.queryparameters:
         param_tuple = param_str.partition('==')
         search_params[param_tuple[0]] = param_tuple[2]
     result = methods[resource_name](search_params)
-    print('')
+
     i = 0
     for i, res in enumerate(result['data'], 1):
-        print('[%i] ' % i)
+        print('\n\n[%i] ' % i)
         for descriptor in res:
             print('%s: %s' % (descriptor, res[descriptor]))
         if args.verbose and resource_name in ('plugin', 'pipeline'):
@@ -143,8 +144,13 @@ if args.subparser_name == 'list':
                 parameters.extend(result['data'])
                 offset += limit
                 if not result['hasNextPage']: break
-            print(f'{param_list_name}: {parameters}')
-        print('')
+            print(f'\n{param_list_name}: {json.dumps(parameters)}')
+
+            if resource_name == 'pipeline':
+                nodes_info = json.dumps(client.compute_workflow_nodes_info(parameters))
+                workflow_data = {"previous_plugin_inst_id": 0, "nodes_info": nodes_info}
+                print(f'\nworkflowdata: {json.dumps(workflow_data)}')
+    print('\n')
 
 elif args.subparser_name == 'add':
     resource_name = args.add_resource_name
@@ -174,7 +180,7 @@ elif args.subparser_name == 'add':
         pipeline_id = args.pipelineid
         data = args.workflowdata
         result = client.create_workflow(pipeline_id, data)
-    print('')
+    print('\n')
     for descriptor in result:
         print('%s: %s' % (descriptor, result[descriptor]))
-    print('')
+    print('\n')
