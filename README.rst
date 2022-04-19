@@ -85,6 +85,11 @@ from the pipeline:
     response = cl.create_workflow(pipeline_id, {'previous_plugin_inst_id': 1, 'nodes_info': json.dumps(nodes)})
 
 
+Please visit the `wiki`_ for more information about the client's API and examples.
+
+.. _`wiki`: https://github.com/FNNDSC/python-chrisclient/wiki
+
+
 Standalone CLI client tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
