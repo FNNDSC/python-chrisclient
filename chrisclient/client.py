@@ -216,6 +216,22 @@ class Client(object):
         else:
             raise ChrisRequestException(f'Could not find workflow with id {id}')
 
+    def get_workflow_plugin_instances(self, workflow_id, params=None):
+        """
+        Get a workflow's paginated list of plugin instances given its ChRIS id.
+        """
+        if not self.workflows_url: self.set_urls()
+        coll = self._fetch_resource(self.workflows_url, {'id': workflow_id})
+        if len(coll.items) == 0:
+            raise ChrisRequestException(f'Could not find workflow with id: {workflow_id}.')
+        parameters_links = Request.get_link_relation_urls(coll.items[0],
+                                                          'plugin_instances')
+        if parameters_links:
+            req = Request(self.username, self.password, self.content_type)
+            coll = req.get(parameters_links[0], params, self.timeout)
+            return Request.get_data_from_collection(coll)
+        return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
+
     def create_workflow(self, pipeline_id, data):
         """
         Create a workflow given the corresponding pipeline id and pipeline-specific
@@ -248,7 +264,7 @@ class Client(object):
                     'piping_id': piping_id,
                     'previous_piping_id': default_param['previous_plugin_piping_id'],
                     'compute_resource_name': 'host',
-                    'title': '',
+                    'title': default_param['plugin_piping_title'],
                     'plugin_parameter_defaults': []
                 }
             if default_param['value'] is None or include_all_defaults:

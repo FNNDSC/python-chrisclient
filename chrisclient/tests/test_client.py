@@ -28,7 +28,7 @@ class ClientTests(TestCase):
         Test whether get_plugin_parameters method can get the list of all plugin parameter
         representations for the given plugin from CUBE.
         """
-        plugin_id = 1
+        plugin_id = 2
         response = self.client.get_plugin_parameters(plugin_id,
                                                      {'limit': 50, 'offset': 0})
         self.assertEqual(response['data'][0]['name'], "dir")
@@ -54,7 +54,7 @@ class ClientTests(TestCase):
         Test whether create_plugin_instance method can create a new plugin instance
         through the REST API.
         """
-        plugin_id = 1
+        plugin_id = 2
         data = {
             'title': 'Test plugin instance',
             'dir': self.username + '/'
@@ -94,9 +94,13 @@ class ClientTests(TestCase):
             {"piping_id": 5, "compute_resource_name": "host"}
         ]
         data = {
-            "previous_plugin_inst_id": 1,
+            'title': 'Workflow1',
+            'previous_plugin_inst_id': 1,
             'nodes_info': json.dumps(nodes)
         }
         response = self.client.create_workflow(pipeline_id, data)
-        ids = response['created_plugin_inst_ids'].split(',')
-        self.assertEqual(len(ids), 3)
+        workflow_title = response['title']
+        self.assertEqual(workflow_title, data['title'])
+        workflow_id = response['id']
+        response = self.client.get_workflow_plugin_instances(workflow_id, data)
+        self.assertEqual(response['total'], 3)
