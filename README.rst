@@ -48,6 +48,14 @@ Instantiate the client:
 
     cl = client.Client('http://localhost:8000/api/v1/', 'cube', 'cube1234')
 
+
+Upload and create a new plugin (only works for ChRIS admins):
+
+.. code-block:: python
+
+    cl_admin = client.Client('http://localhost:8000/api/v1/', 'chris', 'chris1234')
+    response = cl_admin.admin_upload_plugin('host,moc', '~/simpledsapp.json')
+
 Get plugins given search parameters:
 
 .. code-block:: python
@@ -110,6 +118,12 @@ List plugin instances:
 .. code-block:: bash
 
     chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ list plugininstance offset==0 limit==1
+
+Upload and create plugin (only works for ChRIS admins):
+
+.. code-block:: bash
+
+    chrisclient -u chris -p chris1234 http://localhost:8000/api/v1/ add plugin --computenames host,moc --fname ~/simpledsapp.json
 
 Create plugin instance (run plugin):
 

@@ -24,6 +24,7 @@ class Client(object):
         # urls of the high level API resources
         self.feeds_url = self.url
         self.chris_instance_url = ''
+        self.admin_url = ''
         self.files_url = ''
         self.compute_resources_url = ''
         self.plugin_metas_url = ''
@@ -50,6 +51,7 @@ class Client(object):
         # get urls of the high level API resources
         self.chris_instance_url = self.chris_instance_url or get_url(
             coll, 'chrisinstance')[0]
+        self.admin_url = self.admin_url or get_url(coll, 'admin')[0]
         self.files_url = self.files_url or get_url(coll, 'files')[0]
         self.compute_resources_url = self.compute_resources_url or get_url(
             coll, 'compute_resources')[0]
@@ -113,6 +115,23 @@ class Client(object):
             coll = req.get(parameters_links[0], params, self.timeout) # there can only be a single parameters link
             return Request.get_data_from_collection(coll)
         return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
+
+    def admin_upload_plugin(self, compute_names, fname):
+        """
+        Upload a plugin representation file and create a new plugin. The fname argument
+        can be a string indicating a local file path or a file handler.
+        """
+        if not self.admin_url: self.set_urls()
+        if isinstance(fname, str):
+            with open(fname, 'rb') as f:
+                file_contents = f.read()
+        else:
+            file_contents = fname.read()
+        req = Request(self.username, self.password, self.content_type)
+        data = {'compute_names': compute_names}
+        coll = req.post(self.admin_url, data, file_contents, self.timeout)
+        result = req.get_data_from_collection(coll)
+        return result['data'][0]
 
     def get_plugin_instances(self, search_params=None):
         """

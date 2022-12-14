@@ -21,8 +21,9 @@ list_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugin', 'pluginmet
                   'computeresource', 'plugininstance', 'pipeline', 'pipelineinstance',
                   'uploadedfile', 'servicefile', 'pacsfile', 'workflow']
 
-add_resources = ['comment', 'tag', 'plugininstance', 'pipeline', 'pipelineinstance',
-                 'uploadedfile', 'servicefile', 'pacsfile', 'workflow']
+add_resources = ['comment', 'tag', 'plugin', 'plugininstance', 'pipeline',
+                 'pipelineinstance', 'uploadedfile', 'servicefile', 'pacsfile',
+                 'workflow']
 
 modify_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugininstance',
                     'pipeline', 'pipelineinstance', 'uploadedfile']
@@ -52,6 +53,12 @@ parser_list.add_argument('-v', '--verbose',
 # create the parser for the "add" command
 parser_add = subparsers.add_parser('add', help='add a new resource')
 parser_add.add_argument('add_resource_name', choices=add_resources, help="resource name")
+
+plugins_group = parser_add.add_argument_group('plugins arguments')
+plugins_group.add_argument('--computenames', help='a string reprsenting a '
+                                                  'comma-separated list of compute '
+                                                  'resource names')
+plugins_group.add_argument('--fname', help="plugin representation file's path")
 
 plugin_instances_group = parser_add.add_argument_group('plugin instances arguments')
 plugin_instances_group.add_argument('--pluginid', help='plugin id')
@@ -172,6 +179,8 @@ elif args.subparser_name == 'add':
     elif resource_name == 'pipeline':
         data = args.pipelinedata
         result = client.create_pipeline(data)
+    elif resource_name == 'plugin':
+        result = client.admin_upload_plugin(args.computenames, args.fname)
     elif resource_name == 'plugininstance':
         plugin_id = args.pluginid
         data = args.instancedata
