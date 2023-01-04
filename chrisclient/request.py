@@ -14,7 +14,8 @@ class Request(object):
     Http request object.
     """
 
-    def __init__(self, username, password, content_type):
+    def __init__(self, username=None, password=None,
+                 content_type='application/vnd.collection+json'):
         self.username = username
         self.password = password
         self.content_type = content_type
@@ -25,11 +26,14 @@ class Request(object):
         """
         headers = {'Content-Type': self.content_type, 'Accept': self.content_type}
         try:
-            r = requests.get(url,
-                             params=params,
-                             auth=(self.username, self.password),
-                             timeout=timeout,
-                             headers=headers)
+            if self.username or self.password:
+                r = requests.get(url,
+                                 params=params,
+                                 auth=(self.username, self.password),
+                                 timeout=timeout, headers=headers)
+            else:
+                r = requests.get(url, params=params, timeout=timeout,
+                                 headers=headers)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
         return self.get_collection_from_response(r)
@@ -51,9 +55,12 @@ class Request(object):
         Make a DELETE request to CUBE.
         """
         try:
-            r = requests.delete(url,
-                                auth=(self.username, self.password),
-                                timeout=timeout)
+            if self.username or self.password:
+                r = requests.delete(url,
+                                    auth=(self.username, self.password),
+                                    timeout=timeout)
+            else:
+               r = requests.delete(url, timeout=timeout)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
 
@@ -70,9 +77,13 @@ class Request(object):
             headers = None
             files = {'fname': fname}
         try:
-            r = request_method(url, files=files, data=data,
-                               auth=(self.username, self.password),
-                               timeout=timeout, headers=headers)
+            if self.username or self.password:
+                r = request_method(url, files=files, data=data,
+                                   auth=(self.username, self.password),
+                                   timeout=timeout, headers=headers)
+            else:
+                r = request_method(url, files=files, data=data, timeout=timeout,
+                                   headers=headers)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
         return self.get_collection_from_response(r)

@@ -34,8 +34,8 @@ remove_resources = ['feed', 'comment', 'tag', 'plugininstance', 'pipeline',
 
 parser = ArgumentParser(description='Manage Chris resources')
 parser.add_argument('url', help="url of ChRIS")
-parser.add_argument('-u', '--username', help="username for ChRIS", required=True)
-parser.add_argument('-p', '--password', help="password for ChRIS", required=True)
+parser.add_argument('-u', '--username', help="username for ChRIS")
+parser.add_argument('-p', '--password', help="password for ChRIS")
 parser.add_argument('--timeout', help="requests' timeout")
 subparsers = parser.add_subparsers(dest='subparser_name', title='subcommands',
                                    description='valid subcommands',
@@ -107,6 +107,7 @@ if args.timeout:
     client = client.Client(args.url, args.username, args.password, args.timeout)
 else:
     client = client.Client(args.url, args.username, args.password)
+
 client.set_urls()
 
 if args.subparser_name == 'list':

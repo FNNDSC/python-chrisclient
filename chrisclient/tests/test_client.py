@@ -23,6 +23,15 @@ class ClientTests(TestCase):
         response = self.client.get_plugin_by_id(1)
         self.assertEqual(response['id'], 1)
 
+    def test_get_plugin_by_id_unauthenticated(self):
+        """
+        Test whether get_plugin_by_id method can get a plugin representation from CUBE
+        for unauthenticated users.
+        """
+        cl = client.Client(self.chris_url)
+        response = cl.get_plugin_by_id(1)
+        self.assertEqual(response['id'], 1)
+
     def test_get_plugin_parameters(self):
         """
         Test whether get_plugin_parameters method can get the list of all plugin parameter
@@ -33,12 +42,31 @@ class ClientTests(TestCase):
                                                      {'limit': 50, 'offset': 0})
         self.assertEqual(response['data'][0]['name'], "dir")
 
+    def test_get_plugin_parameters_unauthenticated(self):
+        """
+        Test whether get_plugin_parameters method can get the list of all plugin parameter
+        representations for the given plugin from CUBE for unauthenticated users.
+        """
+        cl = client.Client(self.chris_url)
+        plugin_id = 2
+        response = cl.get_plugin_parameters(plugin_id, {'limit': 50, 'offset': 0})
+        self.assertEqual(response['data'][0]['name'], "dir")
+
     def test_get_plugins_with_no_args(self):
         """
         Test whether get_plugins method can get the list of all plugin representations
         from CUBE.
         """
         response = self.client.get_plugins()
+        self.assertGreater(len(response['data']), 1)
+
+    def test_get_plugins_with_no_args_unauthenticated(self):
+        """
+        Test whether get_plugins method can get the list of all plugin representations
+        from CUBE for unauthenticated users.
+        """
+        cl = client.Client(self.chris_url)
+        response = cl.get_plugins()
         self.assertGreater(len(response['data']), 1)
 
     def test_get_plugins_with_search_args(self):
@@ -78,6 +106,18 @@ class ClientTests(TestCase):
         pipeline_id = 2
         response = self.client.get_pipeline_default_parameters(pipeline_id,
                                                                {'limit': 50, 'offset': 0})
+        self.assertEqual(response['total'], 15)
+
+    def test_get_pipeline_default_parameters_unauthenticated(self):
+        """
+        Test whether get_pipeline_default_parameters method can get the list of all
+        pipeline parameter representations for the given pipeline from CUBE for
+        unauthenticated users.
+        """
+        cl = client.Client(self.chris_url)
+        pipeline_id = 2
+        response = cl.get_pipeline_default_parameters(pipeline_id,
+                                                      {'limit': 50, 'offset': 0})
         self.assertEqual(response['total'], 15)
 
     def test_create_workflow(self):

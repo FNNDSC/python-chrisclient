@@ -13,7 +13,7 @@ class Client(object):
     A ChRIS API client.
     """
 
-    def __init__(self, url, username, password, timeout=30):
+    def __init__(self, url, username=None, password=None, timeout=30):
         self.url = url
         self.query_url_sufix = 'search/'
         self.username = username
@@ -51,7 +51,6 @@ class Client(object):
         # get urls of the high level API resources
         self.chris_instance_url = self.chris_instance_url or get_url(
             coll, 'chrisinstance')[0]
-        self.admin_url = self.admin_url or get_url(coll, 'admin')[0]
         self.files_url = self.files_url or get_url(coll, 'files')[0]
         self.compute_resources_url = self.compute_resources_url or get_url(
             coll, 'compute_resources')[0]
@@ -70,7 +69,12 @@ class Client(object):
         self.service_files_url = self.service_files_url or get_url(
             coll, 'servicefiles')[0]
         self.file_browser_url = self.file_browser_url or get_url(coll, 'filebrowser')[0]
-        self.user_url = self.user_url or get_url(coll, 'user')[0]
+        if self.username:
+            self.user_url = self.user_url or get_url(coll, 'user')[0]
+            if not self.admin_url:
+                urls = get_url(coll, 'admin')
+                if urls:
+                    self.admin_url = urls[0]
 
     def get_feeds(self, search_params=None):
         """
@@ -122,6 +126,8 @@ class Client(object):
         can be a string indicating a local file path or a file handler.
         """
         if not self.admin_url: self.set_urls()
+        if not self.admin_url:
+            raise ChrisRequestException(f"User '{self.username}' is not a ChRIS admin.")
         if isinstance(fname, str):
             with open(fname, 'rb') as f:
                 file_contents = f.read()
