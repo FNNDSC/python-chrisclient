@@ -6,6 +6,7 @@ represented by a list of dictionaries.
 
 from .request import Request
 from .exceptions import ChrisRequestException
+import json
 
 
 class Client(object):
@@ -120,22 +121,27 @@ class Client(object):
             return Request.get_data_from_collection(coll)
         return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
 
-    def admin_upload_plugin(self, compute_names, fname):
+    def admin_upload_plugin(self, compute_names, data):
         """
-        Upload a plugin representation file and create a new plugin. The fname argument
-        can be a string indicating a local file path or a file handler.
+        Upload a plugin representation file and create a new plugin. The data argument
+        can be:
+            * a string indicating a local file path, or
+            * a file handler, or
+            * a python dictionary representation.
         """
         if not self.admin_url: self.set_urls()
         if not self.admin_url:
             raise ChrisRequestException(f"User '{self.username}' is not a ChRIS admin.")
-        if isinstance(fname, str):
-            with open(fname, 'rb') as f:
+        if isinstance(data, str):
+            with open(data, 'rb') as f:
                 file_contents = f.read()
+        elif type(data) is dict:
+            file_contents = json.dumps(data, indent = 4).encode('utf-8')
         else:
             file_contents = fname.read()
         req = Request(self.username, self.password, self.content_type)
-        data = {'compute_names': compute_names}
-        coll = req.post(self.admin_url, data, file_contents, self.timeout)
+        comp = {'compute_names': compute_names}
+        coll = req.post(self.admin_url, comp, file_contents, self.timeout)
         result = req.get_data_from_collection(coll)
         return result['data'][0]
 
