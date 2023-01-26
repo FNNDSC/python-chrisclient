@@ -139,6 +139,19 @@ class Client(object):
         result = req.get_data_from_collection(coll)
         return result['data'][0]
 
+    def admin_register_plugin_with_computes(self, plugin_id, compute_names):
+        """
+        Register an existing plugin with a set of existing compute resources.
+        """
+        if not self.admin_url: self.set_urls()
+        if not self.admin_url:
+            raise ChrisRequestException(f"User '{self.username}' is not a ChRIS admin.")
+        req = Request(self.username, self.password, self.content_type)
+        data = {'compute_names': compute_names}
+        coll = req.put(self.admin_url + f'{plugin_id}/', data, None, self.timeout)
+        result = req.get_data_from_collection(coll)
+        return result['data'][0]
+
     def get_plugin_instances(self, search_params=None):
         """
         Get a paginated list of plugin instances (data descriptors) given query search

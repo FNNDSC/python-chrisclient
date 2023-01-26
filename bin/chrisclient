@@ -26,7 +26,7 @@ add_resources = ['comment', 'tag', 'plugin', 'plugininstance', 'pipeline',
                  'workflow']
 
 modify_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugininstance',
-                    'pipeline', 'pipelineinstance', 'uploadedfile']
+                    'pipeline', 'pipelineinstance', 'uploadedfile', 'plugin']
 
 remove_resources = ['feed', 'comment', 'tag', 'plugininstance', 'pipeline',
                     'pipelineinstance', 'uploadedfile', 'workflow']
@@ -90,10 +90,17 @@ service_files_group.add_argument('--servicename', help='service name')
 
 # create the parser for the "modify" command
 parser_modify = subparsers.add_parser('modify', help='modify an existing resource')
-parser_modify.add_argument('resource_name', choices=modify_resources,
+parser_modify.add_argument('modify_resource_name', choices=modify_resources,
                            help="resource name")
-feeds_group = parser_modify.add_argument_group('feed arguments')
-feeds_group.add_argument('--feedid', help='feed id')
+
+feed_group = parser_modify.add_argument_group('feed arguments')
+feed_group.add_argument('--feedid', help='feed id')
+
+plugin_group = parser_modify.add_argument_group('plugin arguments')
+plugin_group.add_argument('--pluginid', help='plugin id')
+plugin_group.add_argument('--computenames', help='a string reprsenting a '
+                                                  'comma-separated list of compute '
+                                                  'resource names')
 
 # create the parser for the "remove" command
 parser_remove = subparsers.add_parser('remove', help='Remove an existing resource')
@@ -160,6 +167,12 @@ if args.subparser_name == 'list':
                 print(f'\nworkflowdata: {json.dumps(workflow_data)}')
     print('\n')
 
+elif args.subparser_name == 'modify':
+    resource_name = args.modify_resource_name
+    if resource_name == 'plugin':
+        result = client.admin_register_plugin_with_computes(args.pluginid,
+                                                            args.computenames)
+        print('Done')
 elif args.subparser_name == 'add':
     resource_name = args.add_resource_name
     result = []
