@@ -1,6 +1,4 @@
 
-
-import io
 import json
 from unittest import TestCase
 from unittest import mock

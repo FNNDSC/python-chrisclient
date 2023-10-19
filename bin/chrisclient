@@ -19,17 +19,17 @@ from chrisclient import client
 
 list_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugin', 'pluginmeta',
                   'computeresource', 'plugininstance', 'pipeline', 'pipelineinstance',
-                  'uploadedfile', 'servicefile', 'pacsfile', 'workflow']
+                  'userfile', 'servicefile', 'pacsfile', 'workflow']
 
 add_resources = ['comment', 'tag', 'plugin', 'plugininstance', 'pipeline',
-                 'pipelineinstance', 'uploadedfile', 'servicefile', 'pacsfile',
+                 'pipelineinstance', 'userfile', 'servicefile', 'pacsfile',
                  'workflow']
 
 modify_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugininstance',
-                    'pipeline', 'pipelineinstance', 'uploadedfile', 'plugin']
+                    'pipeline', 'pipelineinstance', 'userfile', 'plugin']
 
 remove_resources = ['feed', 'comment', 'tag', 'plugininstance', 'pipeline',
-                    'pipelineinstance', 'uploadedfile', 'workflow']
+                    'pipelineinstance', 'userfile', 'workflow']
 
 
 parser = ArgumentParser(description='Manage Chris resources')

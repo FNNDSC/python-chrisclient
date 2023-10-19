@@ -129,7 +129,8 @@ Create plugin instance (run plugin):
 
 .. code-block:: bash
 
-    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add plugininstance --pluginid 3 --instancedata '{"previous_id": 1, "dir": "cube/uploads"}'
+    chrisclient -u cube -p cube1234 http://localhost:8000/api/v1/ add plugininstance
+--pluginid 3 --instancedata '{"previous_id": 1, "dir": "home/cube/uploads"}'
 
 Create pipeline:
 

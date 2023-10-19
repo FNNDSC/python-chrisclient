@@ -35,7 +35,7 @@ class Client(object):
         self.pipeline_instances_url = ''
         self.workflows_url = ''
         self.tags_url = ''
-        self.uploaded_files_url = ''
+        self.user_files_url = ''
         self.pacs_files_url = ''
         self.service_files_url = ''
         self.file_browser_url = ''
@@ -64,8 +64,8 @@ class Client(object):
             coll, 'pipeline_instances')[0]
         self.workflows_url = self.workflows_url or get_url(coll, 'workflows')[0]
         self.tags_url = self.tags_url or get_url(coll, 'tags')[0]
-        self.uploaded_files_url = self.uploaded_files_url or get_url(
-            coll, 'uploadedfiles')[0]
+        self.user_files_url = self.user_files_url or get_url(
+            coll, 'userfiles')[0]
         self.pacs_files_url = self.pacs_files_url or get_url(coll, 'pacsfiles')[0]
         self.service_files_url = self.service_files_url or get_url(
             coll, 'servicefiles')[0]
@@ -365,10 +365,10 @@ class Client(object):
 
     def upload_file(self, upload_path, fname):
         """
-        Upload a file to the user's uploads in CUBE. The fname argument can be a string
+        Upload a file to the user's space in CUBE. The fname argument can be a string
         indicating a local file path or a file handler.
         """
-        if not self.uploaded_files_url: self.set_urls()
+        if not self.user_files_url: self.set_urls()
         if isinstance(fname, str):
             with open(fname, 'rb') as f:
                 file_contents = f.read()
@@ -376,26 +376,26 @@ class Client(object):
             file_contents = fname.read()
         req = Request(self.username, self.password, self.content_type)
         data = {'upload_path': upload_path}
-        coll = req.post(self.uploaded_files_url, data, file_contents, self.timeout)
+        coll = req.post(self.user_files_url, data, file_contents, self.timeout)
         result = req.get_data_from_collection(coll)
         return result['data'][0]
 
-    def get_uploaded_files(self, search_params=None):
+    def get_user_files(self, search_params=None):
         """
-        Get a paginated list of uploaded files (data descriptors) given query search
+        Get a paginated list of user files (data descriptors) given query search
         parameters. If no search parameters is given then get the default first page.
         """
-        if not self.uploaded_files_url: self.set_urls()
-        coll = self._fetch_resource(self.uploaded_files_url, search_params)
+        if not self.user_files_url: self.set_urls()
+        coll = self._fetch_resource(self.user_files_url, search_params)
         return Request.get_data_from_collection(coll)
 
-    def delete_uploaded_file(self, id):
+    def delete_user_file(self, id):
         """
-        Delete an existing uploaded file.
+        Delete an existing user file.
         """
-        if not self.uploaded_files_url: self.set_urls()
+        if not self.user_files_url: self.set_urls()
         search_params = {'id': id}
-        coll = self._fetch_resource(self.uploaded_files_url, search_params)
+        coll = self._fetch_resource(self.user_files_url, search_params)
         file_url = coll.items[0].href
         req = Request(self.username, self.password, self.content_type)
         req.delete(file_url, self.timeout)
