@@ -7,7 +7,7 @@ with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
 
 setup(
       name             =   'python-chrisclient',
-      version          =   '2.9.1',
+      version          =   '2.10.0',
       description      =   '(Python) client for the ChRIS API',
       long_description =   readme,
       author           =   'FNNDSC',
