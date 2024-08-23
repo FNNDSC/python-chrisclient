@@ -7,7 +7,7 @@ with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
 
 setup(
       name             =   'python-chrisclient',
-      version          =   '2.10.0',
+      version          =   '2.11.0',
       description      =   '(Python) client for the ChRIS API',
       long_description =   readme,
       author           =   'FNNDSC',
@@ -20,5 +20,5 @@ setup(
       scripts          =   ['bin/chrisclient', 'bin/chrispl-run', 'bin/chrispl-search'],
       license          =   'MIT',
       zip_safe         =   False,
-      python_requires  =   '>=3.7'
+      python_requires  =   '>=3.8'
 )
