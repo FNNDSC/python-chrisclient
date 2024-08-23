@@ -35,7 +35,7 @@ parser = ArgumentParser(description='Manage Chris resources')
 parser.add_argument('url', help="url of ChRIS")
 parser.add_argument('-u', '--username', help="username for ChRIS")
 parser.add_argument('-p', '--password', help="password for ChRIS")
-parser.add_argument('--timeout', help="requests' timeout")
+parser.add_argument('--timeout', type=int, default=30, help="requests' timeout")
 subparsers = parser.add_subparsers(dest='subparser_name', title='subcommands',
                                    description='valid subcommands',
                                    help='sub-command help')
@@ -108,7 +108,7 @@ parser_remove.add_argument('id', help="resource id")
 
 # Parse the arguments and perform the appropriate action with the client
 args = parser.parse_args()
-timeout = int(args.timeout) or 30
+timeout = args.timeout
 
 client = client.Client(args.url, args.username, args.password)
 client.set_urls(timeout)
