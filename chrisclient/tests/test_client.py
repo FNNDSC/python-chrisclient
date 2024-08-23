@@ -1,5 +1,6 @@
 
 import json
+from random import randint
 from unittest import TestCase
 from unittest import mock
 
@@ -13,6 +14,13 @@ class ClientTests(TestCase):
         self.username = "cube"
         self.password = "cube1234"
         self.client = client.Client(self.chris_url, self.username, self.password)
+
+    def test_get_feed_by_id(self):
+        """
+        Test whether get_feed_by_id method can get a feed representation from CUBE.
+        """
+        response = self.client.get_feed_by_id(1)
+        self.assertEqual(response['id'], 1)
 
     def test_get_plugin_by_id(self):
         """
@@ -83,7 +91,7 @@ class ClientTests(TestCase):
         plugin_id = 2
         data = {
             'title': 'Test plugin instance',
-            'dir': self.username + '/'
+            'dir': 'home/' + self.username + '/uploads'
         }
         response = self.client.create_plugin_instance(plugin_id, data)
         self.assertEqual(response['title'], data['title'])
@@ -104,7 +112,7 @@ class ClientTests(TestCase):
         pipeline_id = 2
         response = self.client.get_pipeline_default_parameters(pipeline_id,
                                                                {'limit': 50, 'offset': 0})
-        self.assertEqual(response['total'], 15)
+        self.assertEqual(response['total'], 18)
 
     def test_get_pipeline_default_parameters_unauthenticated(self):
         """
@@ -116,7 +124,7 @@ class ClientTests(TestCase):
         pipeline_id = 2
         response = cl.get_pipeline_default_parameters(pipeline_id,
                                                       {'limit': 50, 'offset': 0})
-        self.assertEqual(response['total'], 15)
+        self.assertEqual(response['total'], 18)
 
     def test_create_workflow(self):
         """
@@ -142,3 +150,22 @@ class ClientTests(TestCase):
         workflow_id = response['id']
         response = self.client.get_workflow_plugin_instances(workflow_id, data)
         self.assertEqual(response['total'], 3)
+
+    def test_get_user(self):
+        """
+        Test whether get_user method can get a user representation from CUBE.
+        """
+        response = self.client.get_user()
+        self.assertEqual(response['username'], 'cube')
+
+    def test_create_user(self):
+        """
+        Test whether static create_user method can create a new user account
+        through the REST API.
+        """
+        username = f'cube{randint(1000,9000)}'
+        password = f'{username}1234'
+        email = f'{username}@gmail.com'
+        response = client.Client.create_user('http://localhost:8000/api/v1/users/',
+                                             username, password, email)
+        self.assertEqual(response['username'], username)
