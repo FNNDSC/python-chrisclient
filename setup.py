@@ -16,7 +16,7 @@ setup(
       packages         =   ['chrisclient'],
       install_requires =   ['requests>=2.21.0', 'collection-json>=0.1.1', 'pudb', 'pfstate', 'pfmisc', 'webob'],
       test_suite       =   'nose.collector',
-      tests_require    =   ['nose'],
+      tests_require    =   ['nose', 'pynose'],
       scripts          =   ['bin/chrisclient', 'bin/chrispl-run', 'bin/chrispl-search'],
       license          =   'MIT',
       zip_safe         =   False,

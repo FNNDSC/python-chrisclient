@@ -35,6 +35,8 @@ class Client(object):
         self.pipeline_source_files_url = ''
         self.user_files_url = ''
         self.pacs_files_url = ''
+        self.pacs_url = ''
+        self.pacs_queries_url = ''
         self.pacs_series_url = ''
         self.file_browser_url = ''
         self.download_tokens_url = ''
@@ -51,9 +53,9 @@ class Client(object):
         coll = req.get(self.url, None, timeout)
 
         # get urls of the high level API resources
+        self.public_feeds_url = self.public_feeds_url or get_url(coll, 'public_feeds')[0]
         self.chris_instance_url = self.chris_instance_url or get_url(
             coll, 'chrisinstance')[0]
-        self.public_feeds_url = self.public_feeds_url or get_url(coll, 'public_feeds')[0]
         self.compute_resources_url = self.compute_resources_url or get_url(
             coll, 'compute_resources')[0]
         self.plugin_metas_url = self.plugin_metas_url or get_url(coll, 'plugin_metas')[0]
@@ -68,7 +70,9 @@ class Client(object):
         self.user_files_url = self.user_files_url or get_url(
             coll, 'userfiles')[0]
         self.pacs_files_url = self.pacs_files_url or get_url(coll, 'pacsfiles')[0]
-        self.pacs_series_url = self.pacs_files_url or get_url(coll, 'pacsseries')[0]
+        self.pacs_url = self.pacs_url or get_url(coll, 'pacs')[0]
+        self.pacs_queries_url = self.pacs_queries_url or get_url(coll, 'pacsqueries')[0]
+        self.pacs_series_url = self.pacs_series_url or get_url(coll, 'pacsseries')[0]
         self.file_browser_url = self.file_browser_url or get_url(coll, 'filebrowser')[0]
 
         if not self.download_tokens_url:
@@ -541,6 +545,71 @@ class Client(object):
         if result['data']:
             return result['data'][0]
         raise ChrisRequestException(f'Could not find PACS file with id {id}')
+
+    def get_pacs_list(self, search_params=None, timeout=30):
+        """
+        Get a paginated list of PACS (data descriptors) given query search
+        parameters. If no search parameters is given then get the default first page.
+        """
+        coll = self._fetch_resource('pacs_url', search_params, timeout)
+        return Request.get_data_from_collection(coll)
+
+    def get_pacs_by_id(self, id, timeout=30):
+        """
+        Get a PACS's data (descriptors) given its ChRIS id.
+        """
+        result = self.get_pacs_list({'id': id}, timeout)
+
+        if result['data']:
+            return result['data'][0]
+        raise ChrisRequestException(f'Could not find PACS with id {id}')
+
+    def get_pacs_queries(self, search_params=None, timeout=30):
+        """
+        Get a paginated list of PACS queries (data descriptors) given query search
+        parameters. If no search parameters is given then get the default first page.
+        """
+        coll = self._fetch_resource('pacs_queries_url', search_params, timeout)
+        return Request.get_data_from_collection(coll)
+
+    def get_pacs_query_by_id(self, id, timeout=30):
+        """
+        Get a PACS query's data (descriptors) given its ChRIS id.
+        """
+        result = self.get_pacs_queries({'id': id}, timeout)
+
+        if result['data']:
+            return result['data'][0]
+        raise ChrisRequestException(f'Could not find PACS query with id {id}')
+
+    def create_pacs_query(self, pacs_id, data, timeout=30):
+        """
+        Create a PACS query given the corresponding PACS id and data dictionary.
+        """
+        coll = self._fetch_resource('pacs_url', {'id': pacs_id}, timeout)
+        if len(coll.items) == 0:
+            raise ChrisRequestException(f'Could not find pacs with id: {pacs_id}.')
+
+        queries_links = Request.get_link_relation_urls(coll.items[0], 'query_list')
+        req = Request(self.username, self.password, self.content_type)
+        coll = req.post(queries_links[0], data, None, timeout)
+        result = req.get_data_from_collection(coll)
+        return result['data'][0]
+
+    def create_pacs_retrieve(self, pacs_query_id, timeout=30):
+        """
+        Create a PACS retrieve given the corresponding PACS query id.
+        """
+        coll = self._fetch_resource('pacs_queries_url', {'id': pacs_query_id}, timeout)
+        if len(coll.items) == 0:
+            raise ChrisRequestException(f'Could not find PACS query with id: '
+                                        f'{pacs_query_id}.')
+
+        retrieves_links = Request.get_link_relation_urls(coll.items[0], 'retrieve_list')
+        req = Request(self.username, self.password, self.content_type)
+        coll = req.post(retrieves_links[0], {}, None, timeout)
+        result = req.get_data_from_collection(coll)
+        return result['data'][0]
 
     def admin_register_pacs_series(self, data, timeout=30):
         """

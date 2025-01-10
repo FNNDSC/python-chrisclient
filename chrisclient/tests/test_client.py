@@ -17,21 +17,21 @@ class ClientTests(TestCase):
 
     def test_get_feed_by_id(self):
         """
-        Test whether get_feed_by_id method can get a feed representation from CUBE.
+        Test whether the get_feed_by_id method can get a feed representation from CUBE.
         """
         response = self.client.get_feed_by_id(1)
         self.assertEqual(response['id'], 1)
 
     def test_get_plugin_by_id(self):
         """
-        Test whether get_plugin_by_id method can get a plugin representation from CUBE.
+        Test whether the get_plugin_by_id method can get a plugin representation from CUBE.
         """
         response = self.client.get_plugin_by_id(1)
         self.assertEqual(response['id'], 1)
 
     def test_get_plugin_by_id_unauthenticated(self):
         """
-        Test whether get_plugin_by_id method can get a plugin representation from CUBE
+        Test whether the get_plugin_by_id method can get a plugin representation from CUBE
         for unauthenticated users.
         """
         cl = client.Client(self.chris_url)
@@ -40,7 +40,7 @@ class ClientTests(TestCase):
 
     def test_get_plugin_parameters(self):
         """
-        Test whether get_plugin_parameters method can get the list of all plugin parameter
+        Test whether the get_plugin_parameters method can get the list of all plugin parameter
         representations for the given plugin from CUBE.
         """
         plugin_id = 2
@@ -50,7 +50,7 @@ class ClientTests(TestCase):
 
     def test_get_plugin_parameters_unauthenticated(self):
         """
-        Test whether get_plugin_parameters method can get the list of all plugin parameter
+        Test whether the get_plugin_parameters method can get the list of all plugin parameter
         representations for the given plugin from CUBE for unauthenticated users.
         """
         cl = client.Client(self.chris_url)
@@ -60,7 +60,7 @@ class ClientTests(TestCase):
 
     def test_get_plugins_with_no_args(self):
         """
-        Test whether get_plugins method can get the list of all plugin representations
+        Test whether the get_plugins method can get the list of all plugin representations
         from CUBE.
         """
         response = self.client.get_plugins()
@@ -68,7 +68,7 @@ class ClientTests(TestCase):
 
     def test_get_plugins_with_no_args_unauthenticated(self):
         """
-        Test whether get_plugins method can get the list of all plugin representations
+        Test whether the get_plugins method can get the list of all plugin representations
         from CUBE for unauthenticated users.
         """
         cl = client.Client(self.chris_url)
@@ -77,7 +77,7 @@ class ClientTests(TestCase):
 
     def test_get_plugins_with_search_args(self):
         """
-        Test whether get_plugins method can get a list of plugin representations
+        Test whether the get_plugins method can get a list of plugin representations
         from CUBE given query search parameters.
         """
         response = self.client.get_plugins({'name_exact': "pl-dircopy"})
@@ -98,7 +98,7 @@ class ClientTests(TestCase):
 
     def test_get_pipeline_by_id(self):
         """
-        Test whether get_pipeline_by_id method can get a pipeline representation from
+        Test whether the get_pipeline_by_id method can get a pipeline representation from
         CUBE.
         """
         response = self.client.get_pipeline_by_id(2)
@@ -106,7 +106,7 @@ class ClientTests(TestCase):
 
     def test_get_pipeline_default_parameters(self):
         """
-        Test whether get_pipeline_default_parameters method can get the list of all
+        Test whether the get_pipeline_default_parameters method can get the list of all
         pipeline parameter representations for the given pipeline from CUBE.
         """
         pipeline_id = 2
@@ -116,7 +116,7 @@ class ClientTests(TestCase):
 
     def test_get_pipeline_default_parameters_unauthenticated(self):
         """
-        Test whether get_pipeline_default_parameters method can get the list of all
+        Test whether the get_pipeline_default_parameters method can get the list of all
         pipeline parameter representations for the given pipeline from CUBE for
         unauthenticated users.
         """
@@ -153,7 +153,7 @@ class ClientTests(TestCase):
 
     def test_get_user(self):
         """
-        Test whether get_user method can get a user representation from CUBE.
+        Test whether the get_user method can get a user representation from CUBE.
         """
         response = self.client.get_user()
         self.assertEqual(response['username'], 'cube')
@@ -169,3 +169,40 @@ class ClientTests(TestCase):
         response = client.Client.create_user('http://localhost:8000/api/v1/users/',
                                              username, password, email)
         self.assertEqual(response['username'], username)
+
+    def test_get_pacs_by_id(self):
+        """
+        Test whether the get_pacs_by_id method can get a pacs representation from CUBE.
+        """
+        response = self.client.get_pacs_by_id(1)
+        self.assertEqual(response['id'], 1)
+
+    def test_get_pacs_query_by_id(self):
+        """
+        Test whether the get_pacs_query_by_id method can get a pacs query representation
+        from CUBE.
+        """
+        response = self.client.get_pacs_query_by_id(1)
+        self.assertEqual(response['id'], 1)
+
+    def test_create_pacs_query(self):
+        """
+        Test whether the create_pacs_query method can create a new PACS query
+        through the REST API.
+        """
+        pacs_id = 1
+        data = {
+            'title': f'TestQuery{randint(1000,9000)}',
+            'query': '{"SeriesInstanceUID": "1.3.12"}'
+        }
+        response = self.client.create_pacs_query(pacs_id, data)
+        self.assertEqual(response['title'], data['title'])
+
+    def test_create_pacs_retrieve(self):
+        """
+        Test whether the create_pacs_retrieve method can create a new PACS retrieve
+        through the REST API.
+        """
+        query_id = 1
+        response = self.client.create_pacs_retrieve(query_id)
+        self.assertEqual(response['pacs_query_id'], 1)

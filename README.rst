@@ -34,6 +34,47 @@ Use the ``PyPI``, Luke!
    pip install -U python-chrisclient
 
 
+ChRIS server preconditions
+--------------------------
+
+These preconditions are only necessary to be able to test the client against an actual
+instance of a ChRIS server both during development and for the automated tests.
+
+Install latest `just`_ command runner.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _`just`: https://just.systems
+
+Fire up the full set of ChRIS services:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open a terminal and run the following commands in any working directory:
+
+.. code-block:: bash
+
+    $> git clone https://github.com/FNNDSC/ChRIS_ultron_backEnd.git
+    $> cd ChRIS_ultron_backEnd
+    $> just
+
+Create a test feed and two pipelines:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the following shell script on the directory of this README file. NOTE: The script
+depends on the popular `curl` and `jq` command line tools.
+
+.. code-block:: bash
+
+    $> ./pre_test.sh
+
+Tear down the full set of ChRIS services:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can later remove all the backend containers and release storage volumes with:
+
+.. code-block:: bash
+
+    $> cd ChRIS_ultron_backEnd
+    $> just nuke
+
 General CUBE client usage
 -------------------------
 
