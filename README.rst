@@ -41,7 +41,7 @@ These preconditions are only necessary to be able to test the client against an 
 instance of a ChRIS server both during development and for the automated tests.
 
 Install latest `just`_ command runner.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. _`just`: https://just.systems
 
 Fire up the full set of ChRIS services:
