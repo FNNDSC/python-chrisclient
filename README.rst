@@ -422,9 +422,10 @@ Run an FS plugin, ``pl-mri10yr06mo01da_normal``
                     "port":         "8000",
                     "address":      "%HOSTIP",
                     "user":         "chris",
-                    "password":     "chris1234"}'
+                    "password":     "chris1234"}'       \
+                --args="dummyData"
 
-This plugin does not require any specific CLI args when run in the default state. Once posted to CUBE, a string is returned to the shell:
+Although this is an FS plugin, it requires the --args flag with some dummy string to run. Once posted to CUBE, a string is returned to the shell:
 
 .. code-block:: console
 
@@ -456,7 +457,7 @@ or with some formatting:
 
     ROOTNODE=$(
         chrispl-run --plugin name=pl-mri10yr06mo01da_normal     \
-                    --onCUBE="$CUBE"                            |
+                    --onCUBE="$CUBE" --args="dummyData"         |
                          awk '{print $3}'
     )
 
