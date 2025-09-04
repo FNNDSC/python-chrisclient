@@ -65,6 +65,16 @@ depends on the popular `curl` and `jq` command line tools.
 
     $> ./pre_test.sh
 
+Run the automated tests:
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the following shell script on the directory of this README file. NOTE: The script
+depends on the popular `curl` and `jq` command line tools.
+
+.. code-block:: bash
+
+    $> nosetests
+
 Tear down the full set of ChRIS services:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -88,6 +98,14 @@ Instantiate the client:
     from chrisclient import client
 
     cl = client.Client('http://localhost:8000/api/v1/', 'cube', 'cube1234')
+
+
+Alternatively get a valid token for the user and instantiate the client:
+
+.. code-block:: python
+
+    token = client.Client.get_auth_token('http://localhost:8000/api/v1/auth-token/', 'cube', 'cube1234' )
+    cl = client.Client('http://localhost:8000/api/v1/', token=token)
 
 
 Upload and create a new plugin (only works for ChRIS admins):

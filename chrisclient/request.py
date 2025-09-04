@@ -14,29 +14,34 @@ class Request(object):
     Http request object.
     """
 
-    def __init__(self, username=None, password=None,
-                 content_type='application/vnd.collection+json'):
-        self.username = username
-        self.password = password
+    def __init__(self, auth=None, content_type='application/vnd.collection+json'):
+        self.auth = auth
         self.content_type = content_type
 
     def get(self, url, params=None, timeout=30):
         """
         Make a GET request to CUBE.
         """
+        auth = self.auth
         headers = {'Content-Type': self.content_type, 'Accept': self.content_type}
+
         try:
-            if self.username or self.password:
+            if auth and auth.get('username') and auth.get('password'):
                 r = requests.get(url,
                                  params=params,
-                                 auth=(self.username, self.password),
+                                 auth=(auth['username'], auth['password']),
                                  timeout=timeout, headers=headers)
+            elif auth and auth.get('token'):
+                headers = {'Authorization': f"Token {auth['token']}"}
+                r = requests.get(url, params=params, timeout=timeout, headers=headers)
             else:
-                r = requests.get(url, params=params, timeout=timeout,
-                                 headers=headers)
+                r = requests.get(url, params=params, timeout=timeout, headers=headers)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
-        return self.get_collection_from_response(r)
+
+        if self.content_type == 'application/vnd.collection+json':
+            return self.get_collection_from_response(r)
+        return json.loads(r.text)
 
     def post(self, url, data, descriptor_file=None, timeout=30):
         """
@@ -54,11 +59,15 @@ class Request(object):
         """
         Make a DELETE request to CUBE.
         """
+        auth = self.auth
         try:
-            if self.username or self.password:
+            if auth and auth.get('username') and auth.get('password'):
                 r = requests.delete(url,
-                                    auth=(self.username, self.password),
+                                    auth=(auth['username'], auth['password']),
                                     timeout=timeout)
+            elif auth and auth.get('token'):
+                headers = {'Authorization': f"Token {auth['token']}"}
+                r = requests.delete(url, timeout=timeout, headers=headers)
             else:
                r = requests.delete(url, timeout=timeout)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
@@ -68,25 +77,43 @@ class Request(object):
         """
         Internal method to make either a POST or PUT request to CUBE.
         """
+        auth = self.auth
+
         if fname is None:
             headers = {'Content-Type': self.content_type, 'Accept': self.content_type}
             files = None
-            data = json.dumps(self.makeTemplate(data))
+
+            if self.content_type == 'application/vnd.collection+json':
+                data = json.dumps(self.makeTemplate(data))
+            else:
+                data = json.dumps(data)
         else:
             # this is a multipart request
             headers = None
             files = {'fname': fname}
+
         try:
-            if self.username or self.password:
+            if auth and auth.get('username') and auth.get('password'):
                 r = request_method(url, files=files, data=data,
-                                   auth=(self.username, self.password),
+                                   auth=(auth['username'], auth['password']),
                                    timeout=timeout, headers=headers)
+            elif auth and auth.get('token'):
+                if headers is None:
+                    headers = {'Authorization': f"Token {auth['token']}"}
+                else:
+                    headers['Authorization'] = f"Token {auth['token']}"
+
+                r = request_method(url, files=files, data=data, timeout=timeout,
+                                   headers=headers)
             else:
                 r = request_method(url, files=files, data=data, timeout=timeout,
                                    headers=headers)
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             raise ChrisRequestException(str(e))
-        return self.get_collection_from_response(r)
+
+        if self.content_type == 'application/vnd.collection+json':
+            return self.get_collection_from_response(r)
+        return json.loads(r.text)
 
     @staticmethod
     def get_data_from_collection(collection):
@@ -94,13 +121,17 @@ class Request(object):
         Get the result data dictionary from a collection object.
         """
         result = {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
+
         for item in collection.items:
             item_dict = Request.get_item_descriptors(item)
             result['data'].append(item_dict)
+
         if Request.get_link_relation_urls(collection, 'next'):
             result['hasNextPage'] = True
+
         if Request.get_link_relation_urls(collection, 'previous'):
             result['hasPreviousPage'] = True
+
         if hasattr(collection, 'total'):
             result['total'] = collection.total
         return result
@@ -111,6 +142,7 @@ class Request(object):
         Get an item's data (descriptors) in a dictionary.
         """
         item_dict = {}
+
         # collect the item's descriptors
         for descriptor in item.data:
             item_dict[descriptor.name] = descriptor.value
@@ -131,9 +163,12 @@ class Request(object):
         """
         content = json.loads(response.text)
         total = content['collection'].pop('total', None)
+
         collection = Collection.from_json(json.dumps(content))
+
         if collection.error:
             raise ChrisRequestException(collection.error.message)
+
         if total is not None:
             collection.total = total
         return collection
@@ -145,6 +180,7 @@ class Request(object):
         properties are the item descriptors.
         """
         template = {'data': []}
+
         for key in descriptors_dict:
             template['data'].append({'name': key, 'value': descriptors_dict[key]})
         return {'template': template}

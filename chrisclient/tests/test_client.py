@@ -14,6 +14,8 @@ class ClientTests(TestCase):
         self.username = "cube"
         self.password = "cube1234"
         self.client = client.Client(self.chris_url, self.username, self.password)
+        resp = self.client.get_plugins({'name_exact': "pl-dircopy"})
+        self.fs_plg_id = resp['data'][0]['id']
 
     def test_get_feed_by_id(self):
         """
@@ -43,7 +45,7 @@ class ClientTests(TestCase):
         Test whether the get_plugin_parameters method can get the list of all plugin parameter
         representations for the given plugin from CUBE.
         """
-        plugin_id = 2
+        plugin_id = self.fs_plg_id
         response = self.client.get_plugin_parameters(plugin_id,
                                                      {'limit': 50, 'offset': 0})
         self.assertEqual(response['data'][0]['name'], "dir")
@@ -54,7 +56,7 @@ class ClientTests(TestCase):
         representations for the given plugin from CUBE for unauthenticated users.
         """
         cl = client.Client(self.chris_url)
-        plugin_id = 2
+        plugin_id = self.fs_plg_id
         response = cl.get_plugin_parameters(plugin_id, {'limit': 50, 'offset': 0})
         self.assertEqual(response['data'][0]['name'], "dir")
 
@@ -88,7 +90,7 @@ class ClientTests(TestCase):
         Test whether create_plugin_instance method can create a new plugin instance
         through the REST API.
         """
-        plugin_id = 2
+        plugin_id = self.fs_plg_id
         data = {
             'title': 'Test plugin instance',
             'dir': 'home/' + self.username + '/uploads'
@@ -206,3 +208,13 @@ class ClientTests(TestCase):
         query_id = 1
         response = self.client.create_pacs_retrieve(query_id)
         self.assertEqual(response['pacs_query_id'], 1)
+
+
+class ClientWithTokenTests(ClientTests):
+
+    def setUp(self):
+        super().setUp()
+
+        self.token = client.Client.get_auth_token(self.chris_url + 'auth-token/',
+                                                  self.username, self.password)
+        self.client = client.Client(url=self.chris_url, token=self.token)

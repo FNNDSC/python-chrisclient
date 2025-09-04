@@ -14,12 +14,23 @@ class Client(object):
     A ChRIS API client.
     """
 
-    def __init__(self, url, username=None, password=None):
+    def __init__(self, url, username=None, password=None, token=None):
         self.url = url
         self.query_url_sufix = 'search/'
-        self.username = username
-        self.password = password
         self.content_type = 'application/vnd.collection+json'
+        self.auth = None
+
+        if (username is not None and password is None) or (
+                username is None and password is not None):
+            raise ValueError('Both username and password must be provided together.')
+
+        if username is not None and password is not None:
+            # username/password have priority
+            self.auth = {'username': username, 'password': password}
+        elif token is not None:
+            self.auth = {'token': token}
+
+        self._request = Request(self.auth, self.content_type)
 
         # urls of the high level API resources
         self.feeds_url = self.url
@@ -49,7 +60,8 @@ class Client(object):
         Set the urls of the high level API resources.
         """
         get_url = Request.get_link_relation_urls
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.get(self.url, None, timeout)
 
         # get urls of the high level API resources
@@ -152,10 +164,12 @@ class Client(object):
             raise ChrisRequestException(f'Could not find plugin with id: {plugin_id}.')
 
         parameters_links = Request.get_link_relation_urls(coll.items[0], 'parameters')
+
         if parameters_links:
-            req = Request(self.username, self.password, self.content_type)
+            req = self._request
             coll = req.get(parameters_links[0], params, timeout) # there can only be a single parameters link
             return Request.get_data_from_collection(coll)
+
         return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
 
     def get_plugin_metas(self, search_params=None, timeout=30):
@@ -204,7 +218,7 @@ class Client(object):
         """
         if not self.admin_url: self.set_urls(timeout)
         if not self.admin_url:
-            raise ChrisRequestException(f"User '{self.username}' is not a ChRIS admin.")
+            raise ChrisRequestException(f"User is not a ChRIS admin.")
 
         if isinstance(data, str):
             with open(data, 'rb') as f:
@@ -214,10 +228,11 @@ class Client(object):
         else:
             file_contents = data.read()
 
-        req = Request(self.username, self.password, self.content_type)
         comp = {'compute_names': compute_names}
+
+        req = self._request
         coll = req.post(self.admin_url, comp, file_contents, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def admin_register_plugin_with_computes(self, plugin_id, compute_names, timeout=30):
@@ -226,12 +241,13 @@ class Client(object):
         """
         if not self.admin_url: self.set_urls(timeout)
         if not self.admin_url:
-            raise ChrisRequestException(f"User '{self.username}' is not a ChRIS admin.")
+            raise ChrisRequestException(f"User is not a ChRIS admin.")
 
-        req = Request(self.username, self.password, self.content_type)
         data = {'compute_names': compute_names}
+
+        req = self._request
         coll = req.put(self.admin_url + f'{plugin_id}/', data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_plugin_instances(self, search_params=None, timeout=30):
@@ -262,9 +278,10 @@ class Client(object):
             raise ChrisRequestException(f'Could not find plugin with id: {plugin_id}.')
 
         instances_links = Request.get_link_relation_urls(coll.items[0], 'instances')
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(instances_links[0], data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def create_plugin_instance_split(self, plg_inst_id, filter='', cr_name='', timeout=30):
@@ -278,11 +295,13 @@ class Client(object):
             raise ChrisRequestException(f'Could not find plugin instance with id: {plg_inst_id}')
 
         splits_links = Request.get_link_relation_urls(coll.items[0], 'splits')
-        req = Request(self.username, self.password, self.content_type)
+
         data = {'filter': filter}
         if cr_name: data['compute_resource_name'] = cr_name
+
+        req = self._request
         coll = req.post(splits_links[0], data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_pipelines(self, search_params=None, timeout=30):
@@ -314,7 +333,7 @@ class Client(object):
         parameters_links = Request.get_link_relation_urls(coll.items[0],
                                                           'default_parameters')
         if parameters_links:
-            req = Request(self.username, self.password, self.content_type)
+            req = self._request
             coll = req.get(parameters_links[0], params, timeout)
             return Request.get_data_from_collection(coll)
         return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
@@ -324,9 +343,10 @@ class Client(object):
         Create a pipeline given the data dictionary.
         """
         if not self.pipelines_url: self.set_urls(timeout)
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(self.pipelines_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_workflows(self, search_params=None, timeout=30):
@@ -358,7 +378,7 @@ class Client(object):
         parameters_links = Request.get_link_relation_urls(coll.items[0],
                                                           'plugin_instances')
         if parameters_links:
-            req = Request(self.username, self.password, self.content_type)
+            req = self._request
             coll = req.get(parameters_links[0], params, timeout)
             return Request.get_data_from_collection(coll)
         return {'data': [], 'hasNextPage': False, 'hasPreviousPage': False, 'total': 0}
@@ -374,9 +394,10 @@ class Client(object):
                                         f'{pipeline_id}.')
 
         workflows_links = Request.get_link_relation_urls(coll.items[0], 'workflows')
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(workflows_links[0], data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def compute_workflow_nodes_info(self, pipeline_default_parameters,
@@ -438,9 +459,10 @@ class Client(object):
         Create a tag given the data dictionary.
         """
         if not self.tags_url: self.set_urls(timeout)
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(self.tags_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_pipeline_source_files(self, search_params=None, timeout=30):
@@ -475,10 +497,11 @@ class Client(object):
         else:
             file_contents = fname.read()
 
-        req = Request(self.username, self.password, self.content_type)
         data = {'type': type}
+
+        req = self._request
         coll = req.post(self.pipeline_source_files_url, data, file_contents, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_user_files(self, search_params=None, timeout=30):
@@ -512,10 +535,11 @@ class Client(object):
         else:
             file_contents = fname.read()
 
-        req = Request(self.username, self.password, self.content_type)
         data = {'upload_path': upload_path}
+
+        req = self._request
         coll = req.post(self.user_files_url, data, file_contents, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def delete_user_file(self, id, timeout=30):
@@ -525,7 +549,8 @@ class Client(object):
         search_params = {'id': id}
         coll = self._fetch_resource('user_files_url', search_params, timeout)
         file_url = coll.items[0].href
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         req.delete(file_url, timeout)
 
     def get_pacs_files(self, search_params=None, timeout=30):
@@ -591,9 +616,10 @@ class Client(object):
             raise ChrisRequestException(f'Could not find pacs with id: {pacs_id}.')
 
         queries_links = Request.get_link_relation_urls(coll.items[0], 'query_list')
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(queries_links[0], data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def create_pacs_retrieve(self, pacs_query_id, timeout=30):
@@ -606,9 +632,10 @@ class Client(object):
                                         f'{pacs_query_id}.')
 
         retrieves_links = Request.get_link_relation_urls(coll.items[0], 'retrieve_list')
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(retrieves_links[0], {}, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def admin_register_pacs_series(self, data, timeout=30):
@@ -616,9 +643,10 @@ class Client(object):
         Register a new PACS series with CUBE.
         """
         if not self.pacs_series_url: self.set_urls(timeout)
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(self.pacs_series_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_pacs_series_list(self, search_params=None, timeout=30):
@@ -673,10 +701,12 @@ class Client(object):
         Create a file browser folder given the path.
         """
         if not self.file_browser_url: self.set_urls(timeout)
-        req = Request(self.username, self.password, self.content_type)
+
         data = {'path': path}
+
+        req = self._request
         coll = req.post(self.file_browser_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_groups(self, search_params=None, timeout=30):
@@ -702,9 +732,10 @@ class Client(object):
         Create a group given the name.
         """
         if not self.groups_url: self.set_urls(timeout)
-        req = Request(self.username, self.password, self.content_type)
+
+        req = self._request
         coll = req.post(self.groups_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
 
     def get_user(self, timeout=30):
@@ -720,11 +751,23 @@ class Client(object):
         """
         Static method to create a new user account.
         """
-        req = Request()
         data = {'username': username, 'password': password, 'email': email}
+
+        req = Request()
         coll = req.post(users_url, data, None, timeout)
-        result = req.get_data_from_collection(coll)
+        result = Request.get_data_from_collection(coll)
         return result['data'][0]
+
+    @staticmethod
+    def get_auth_token(auth_url, username, password, timeout=30):
+        """
+        Static method to fetch a user's login authorization token.
+        """
+        data = {'username': username, 'password': password}
+
+        req = Request(auth=None, content_type='application/json')
+        result = req.post(auth_url, data, None, timeout)
+        return result['token']
 
     def _fetch_resource(self, url_attr, search_params=None, timeout=30):
         """
@@ -736,10 +779,10 @@ class Client(object):
 
         url = getattr(self, url_attr)
         if not url:
-            raise ChrisRequestException(f"Resource not available to user "
-                                        f"'{self.username}'.")
+            raise ChrisRequestException('Resource not available to the user.')
 
-        req = Request(self.username, self.password, self.content_type)
+        req = self._request
+
         if search_params:
             collection = req.get(url + self.query_url_sufix, search_params, timeout)
         else:
