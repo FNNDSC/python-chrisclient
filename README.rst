@@ -68,9 +68,6 @@ depends on the popular `curl` and `jq` command line tools.
 Run the automated tests:
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run the following shell script on the directory of this README file. NOTE: The script
-depends on the popular `curl` and `jq` command line tools.
-
 .. code-block:: bash
 
     $> nosetests
