@@ -3,13 +3,10 @@
 import  logging
 logging.disable(logging.CRITICAL)
 
-import  os
 import  sys
 import  json
 import  socket
-import  requests
 
-import  pudb
 import  pfmisc
 
 # pfstorage local dependencies
@@ -21,9 +18,7 @@ from    pfstate             import  S
 from    argparse            import RawTextHelpFormatter
 from    argparse            import ArgumentParser
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
-
-from    chrisclient         import search
+from    .. import search
 
 str_desc        = """
 
@@ -356,104 +351,107 @@ str_defIP   = [l for l in (
 
 str_version     = "2.2.10"
 str_name        = "chrispl-search"
-parser          = ArgumentParser(
-                    description     = str_desc,
-                    formatter_class = RawTextHelpFormatter
-)
 
-parser.add_argument(
-    '--onCUBE',
-    help    = 'A JSON string defining the details of a CUBE instance',
-    action  = 'store',
-    dest    = 'str_CUBE',
-    default = '',
-)
-parser.add_argument(
-    '--onCUBEaddress',
-    help    = 'the address of a CUBE instance',
-    action  = 'store',
-    dest    = 'str_CUBEaddress',
-    default = '',
-)
-parser.add_argument(
-    '--onCUBEport',
-    help    = 'the port of a CUBE instance',
-    action  = 'store',
-    dest    = 'str_CUBEport',
-    default = '',
-)
-parser.add_argument(
-    '--version',
-    help    = 'if specified, print verion',
-    action  = 'store_true',
-    dest    = 'b_version',
-    default = False,
-)
-parser.add_argument(
-    '--man', '-x',
-    help    = 'if specified, show help and exit',
-    action  = 'store_true',
-    dest    = 'b_man',
-    default = False,
-)
-parser.add_argument(
-    '--syslogPrepend',
-    help    = 'if specified, prepend syslog info to output',
-    action  = 'store_true',
-    dest    = 'b_syslog',
-    default = False,
-)
-parser.add_argument(
-    '--jsonReturn',
-    help    = 'if specified, return results as JSON',
-    action  = 'store_true',
-    dest    = 'b_json',
-    default = False,
-)
-parser.add_argument(
-    '--for',
-    help    = 'property for which to search',
-    action  = 'store',
-    dest    = 'str_for',
-    default = '',
-)
-parser.add_argument(
-    '--using',
-    help    = 'search template in <key>=<value>[,..] form',
-    action  = 'store',
-    dest    = 'str_using',
-    default = '',
-)
-parser.add_argument(
-    '--across',
-    help    = 'a metaspace across which to search (files, instances, etc)',
-    action  = 'store',
-    dest    = 'str_across',
-    default = 'plugins',
-)
-parser.add_argument(
-    '--filterFor',
-    help    = 'fine tune the list of hits for a value substring',
-    action  = 'store',
-    dest    = 'str_filterFor',
-    default = '',
-)
-parser.add_argument(
-    '--returnKeyList',
-    help    = 'return the list of keys in the search space',
-    action  = 'store_true',
-    dest    = 'b_returnKeyList',
-    default = False,
-)
-parser.add_argument(
-    '--verbosity',
-    help    = 'the system verbosity',
-    action  = 'store',
-    dest    = 'verbosity',
-    default = 1,
-)
 
-args        = parser.parse_args()
+def _build_parser():
+    parser = ArgumentParser(
+        description     = str_desc,
+        formatter_class = RawTextHelpFormatter
+    )
+
+    parser.add_argument(
+        '--onCUBE',
+        help    = 'A JSON string defining the details of a CUBE instance',
+        action  = 'store',
+        dest    = 'str_CUBE',
+        default = '',
+    )
+    parser.add_argument(
+        '--onCUBEaddress',
+        help    = 'the address of a CUBE instance',
+        action  = 'store',
+        dest    = 'str_CUBEaddress',
+        default = '',
+    )
+    parser.add_argument(
+        '--onCUBEport',
+        help    = 'the port of a CUBE instance',
+        action  = 'store',
+        dest    = 'str_CUBEport',
+        default = '',
+    )
+    parser.add_argument(
+        '--version',
+        help    = 'if specified, print verion',
+        action  = 'store_true',
+        dest    = 'b_version',
+        default = False,
+    )
+    parser.add_argument(
+        '--man', '-x',
+        help    = 'if specified, show help and exit',
+        action  = 'store_true',
+        dest    = 'b_man',
+        default = False,
+    )
+    parser.add_argument(
+        '--syslogPrepend',
+        help    = 'if specified, prepend syslog info to output',
+        action  = 'store_true',
+        dest    = 'b_syslog',
+        default = False,
+    )
+    parser.add_argument(
+        '--jsonReturn',
+        help    = 'if specified, return results as JSON',
+        action  = 'store_true',
+        dest    = 'b_json',
+        default = False,
+    )
+    parser.add_argument(
+        '--for',
+        help    = 'property for which to search',
+        action  = 'store',
+        dest    = 'str_for',
+        default = '',
+    )
+    parser.add_argument(
+        '--using',
+        help    = 'search template in <key>=<value>[,..] form',
+        action  = 'store',
+        dest    = 'str_using',
+        default = '',
+    )
+    parser.add_argument(
+        '--across',
+        help    = 'a metaspace across which to search (files, instances, etc)',
+        action  = 'store',
+        dest    = 'str_across',
+        default = 'plugins',
+    )
+    parser.add_argument(
+        '--filterFor',
+        help    = 'fine tune the list of hits for a value substring',
+        action  = 'store',
+        dest    = 'str_filterFor',
+        default = '',
+    )
+    parser.add_argument(
+        '--returnKeyList',
+        help    = 'return the list of keys in the search space',
+        action  = 'store_true',
+        dest    = 'b_returnKeyList',
+        default = False,
+    )
+    parser.add_argument(
+        '--verbosity',
+        help    = 'the system verbosity',
+        action  = 'store',
+        dest    = 'verbosity',
+        default = 1,
+    )
+    return parser
+
 
 def preprocessing_do(*args):
     """
@@ -491,10 +489,11 @@ def postprocessing_do(query, d_result):
                 retCode = 0
     return retCode
 
-def main(*args):
+def main():
     """
     The main method of the script, when called directly from the CLI
     """
+    args        = _build_parser().parse_args()
     retCode     : int   = 1
     d_meta      : dict  = {
         'version':  str_version,
@@ -503,13 +502,13 @@ def main(*args):
         'defIP':    str_defIP
     }
 
-    preprocessing_do(*args)
+    preprocessing_do(args)
 
-    query       = search.PluginSearch(d_meta, args[0])
+    query       = search.PluginSearch(d_meta, args)
     d_result    = query.do()
     retCode     = postprocessing_do(query, d_result)
 
     sys.exit(retCode)
 
 if __name__ == "__main__":
-    main(args)
+    main()

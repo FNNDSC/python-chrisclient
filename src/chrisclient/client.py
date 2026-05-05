@@ -418,6 +418,8 @@ class Client(object):
                     'previous_piping_id': default_param['previous_plugin_piping_id'],
                     'compute_resource_name': 'host',
                     'title': default_param['plugin_piping_title'],
+                    'cpu_limit': default_param['plugin_piping_cpu_limit'],
+                    'memory_limit': default_param['plugin_piping_memory_limit'],
                     'plugin_parameter_defaults': []
                 }
 

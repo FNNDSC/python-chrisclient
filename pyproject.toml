@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 82.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-chrisclient"
+version = "2.14.0"
+authors = [
+  { name = "FNNDSC", email = "dev@babymri.org" },
+]
+description = "(Python) client for the ChRIS API"
+readme = "README.rst"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+dependencies = [
+  "requests>=2.32.0",
+  "collection-json>=0.1.1",
+  "pfstate",
+  "pfmisc",
+  "webob",
+]
+
+[project.urls]
+Homepage = "https://github.com/FNNDSC/python-chrisclient"
+
+[project.scripts]
+chrisclient = "chrisclient.__main__:main"
+chrispl-search = "chrisclient.cli.chrispl_search:main"
+chrispl-run = "chrisclient.cli.chrispl_run:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]

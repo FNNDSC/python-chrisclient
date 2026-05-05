@@ -68,12 +68,12 @@ depends on the popular `curl` and `jq` command line tools.
 Run the automated tests:
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run the following shell script on the directory of this README file. NOTE: The script
-depends on the popular `curl` and `jq` command line tools.
+Optionally create a virtual environment and activate it and then run the automated tests.
 
 .. code-block:: bash
 
-    $> nosetests
+    $> pip install -e ".[dev]"
+    $> pytest
 
 Tear down the full set of ChRIS services:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

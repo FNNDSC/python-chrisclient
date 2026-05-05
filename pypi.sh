@@ -35,6 +35,6 @@ git tag $VER
 git push origin --tags
 
 rstcheck README.rst
-python3 setup.py sdist
+python3 -m build
 twine upload dist/$(basename $(pwd))-${VER}.tar.gz
 

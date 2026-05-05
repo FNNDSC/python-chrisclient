@@ -115,6 +115,12 @@ class ClientTests(TestCase):
         response = self.client.get_pipeline_default_parameters(pipeline_id,
                                                                {'limit': 50, 'offset': 0})
         self.assertEqual(response['total'], 18)
+        first_param = response['data'][0]
+        self.assertIn('plugin_piping_id', first_param)
+        self.assertIn('previous_plugin_piping_id', first_param)
+        self.assertIn('plugin_piping_title', first_param)
+        self.assertIn('plugin_piping_cpu_limit', first_param)
+        self.assertIn('plugin_piping_memory_limit', first_param)
 
     def test_get_pipeline_default_parameters_unauthenticated(self):
         """
@@ -152,6 +158,31 @@ class ClientTests(TestCase):
         workflow_id = response['id']
         response = self.client.get_workflow_plugin_instances(workflow_id, data)
         self.assertEqual(response['total'], 3)
+
+    def test_compute_workflow_nodes_info(self):
+        """
+        Test whether the compute_workflow_nodes_info method correctly builds a
+        nodes_info structure from a pipeline's default parameters.
+        """
+        pipeline_id = 2
+        response = self.client.get_pipeline_default_parameters(
+            pipeline_id, {'limit': 50, 'offset': 0})
+        default_params = response['data']
+
+        nodes_info = self.client.compute_workflow_nodes_info(default_params)
+
+        expected_piping_ids = {p['plugin_piping_id'] for p in default_params}
+        self.assertEqual(len(nodes_info), len(expected_piping_ids))
+        for node in nodes_info:
+            self.assertIn('piping_id', node)
+            self.assertIn('previous_piping_id', node)
+            self.assertEqual(node['compute_resource_name'], 'host')
+            self.assertIn('title', node)
+            self.assertIn('cpu_limit', node)
+            self.assertIn('memory_limit', node)
+            if 'plugin_parameter_defaults' in node:
+                for param in node['plugin_parameter_defaults']:
+                    self.assertIsNone(param['default'])
 
     def test_get_user(self):
         """

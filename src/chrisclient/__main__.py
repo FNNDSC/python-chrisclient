@@ -7,14 +7,10 @@
 #                        dev@babyMRI.org
 #
 
-import sys
-import os
 import json
 from argparse import ArgumentParser
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
-
-from chrisclient import client
+from .client import Client
 
 
 list_resources = ['feed', 'comment', 'tag', 'note', 'user', 'plugin', 'pluginmeta',
@@ -107,110 +103,115 @@ parser_remove.add_argument('resource_name', choices=remove_resources,
 parser_remove.add_argument('id', help="resource id")
 
 
-# Parse the arguments and perform the appropriate action with the client
-args = parser.parse_args()
-timeout = args.timeout
+def main():
+    # Parse the arguments and perform the appropriate action with the client
+    args = parser.parse_args()
+    timeout = args.timeout
 
-client = client.Client(args.url, args.username, args.password, args.token)
-client.set_urls(timeout)
+    cl = Client(args.url, args.username, args.password, args.token)
+    cl.set_urls(timeout)
 
-if args.subparser_name == 'list':
-    resource_name = args.list_resource_name
-    methods = {
-        'feed': client.get_feeds,
-        'plugin': client.get_plugins,
-        'plugininstance': client.get_plugin_instances,
-        'pipeline': client.get_pipelines,
-        'workflow': client.get_workflows,
-        'pacsfile': client.get_pacs_files,
-        'pacsseries': client.get_pacs_series_list
-    }
-    if resource_name not in methods:
-        raise NotImplementedError(f"'list' not implemented for {resource_name} yet")
+    if args.subparser_name == 'list':
+        resource_name = args.list_resource_name
+        methods = {
+            'feed': cl.get_feeds,
+            'plugin': cl.get_plugins,
+            'plugininstance': cl.get_plugin_instances,
+            'pipeline': cl.get_pipelines,
+            'workflow': cl.get_workflows,
+            'pacsfile': cl.get_pacs_files,
+            'pacsseries': cl.get_pacs_series_list
+        }
+        if resource_name not in methods:
+            raise NotImplementedError(f"'list' not implemented for {resource_name} yet")
 
-    search_params = {}
-    for param_str in args.queryparameters:
-        param_tuple = param_str.partition('==')
-        search_params[param_tuple[0]] = param_tuple[2]
-    result = methods[resource_name](search_params, timeout)
+        search_params = {}
+        for param_str in args.queryparameters:
+            param_tuple = param_str.partition('==')
+            search_params[param_tuple[0]] = param_tuple[2]
+        result = methods[resource_name](search_params, timeout)
 
-    i = 0
-    for i, res in enumerate(result['data'], 1):
-        print('\n\n[%i] ' % i)
-        for descriptor in res:
-            print('%s: %s' % (descriptor, res[descriptor]))
+        i = 0
+        for i, res in enumerate(result['data'], 1):
+            print('\n\n[%i] ' % i)
+            for descriptor in res:
+                print('%s: %s' % (descriptor, res[descriptor]))
 
-        if args.verbose and resource_name in ('plugin', 'pipeline'):
-            param_method = None
-            param_list_name = ''
+            if args.verbose and resource_name in ('plugin', 'pipeline'):
+                param_method = None
+                param_list_name = ''
 
-            if resource_name == 'plugin':
-                param_method = client.get_plugin_parameters
-                param_list_name = 'parameters'
-            elif resource_name == 'pipeline':
-                param_method = client.get_pipeline_default_parameters
-                param_list_name = 'plugin_parameter_defaults'
+                if resource_name == 'plugin':
+                    param_method = cl.get_plugin_parameters
+                    param_list_name = 'parameters'
+                elif resource_name == 'pipeline':
+                    param_method = cl.get_pipeline_default_parameters
+                    param_list_name = 'plugin_parameter_defaults'
 
-            parameters = []
-            offset = 0
-            limit = 50
-            while True:
-                result = param_method(res['id'], {'limit': limit, 'offset': offset},
-                                      timeout)
-                parameters.extend(result['data'])
-                offset += limit
-                if not result['hasNextPage']: break
+                parameters = []
+                offset = 0
+                limit = 50
+                while True:
+                    result = param_method(res['id'], {'limit': limit, 'offset': offset},
+                                          timeout)
+                    parameters.extend(result['data'])
+                    offset += limit
+                    if not result['hasNextPage']: break
 
-            print(f'\n{param_list_name}: {json.dumps(parameters)}')
+                print(f'\n{param_list_name}: {json.dumps(parameters)}')
 
-            if resource_name == 'pipeline':
-                nodes_info = json.dumps(client.compute_workflow_nodes_info(parameters))
-                workflow_data = {"previous_plugin_inst_id": 0, "nodes_info": nodes_info}
-                print(f'\nworkflowdata: {json.dumps(workflow_data)}')
-    print('\n')
+                if resource_name == 'pipeline':
+                    nodes_info = json.dumps(cl.compute_workflow_nodes_info(parameters))
+                    workflow_data = {"previous_plugin_inst_id": 0, "nodes_info": nodes_info}
+                    print(f'\nworkflowdata: {json.dumps(workflow_data)}')
+        print('\n')
 
-elif args.subparser_name == 'modify':
-    resource_name = args.modify_resource_name
-    if resource_name == 'plugin':
-        result = client.admin_register_plugin_with_computes(args.pluginid,
-                                                            args.computenames, timeout)
-        print('Done')
+    elif args.subparser_name == 'modify':
+        resource_name = args.modify_resource_name
+        if resource_name == 'plugin':
+            cl.admin_register_plugin_with_computes(args.pluginid,
+                                                   args.computenames, timeout)
+            print('Done')
 
-elif args.subparser_name == 'add':
-    resource_name = args.add_resource_name
-    result = []
+    elif args.subparser_name == 'add':
+        resource_name = args.add_resource_name
+        result = []
 
-    if resource_name == 'pacsseries':
-        data = {'path': args.pacsseriespath,
-                'ndicom': args.ndicom,
-                'PatientID': args.PatientID,
-                'PatientName': args.PatientName,
-                'StudyInstanceUID': args.StudyInstanceUID,
-                'StudyDescription': args.StudyDescription,
-                'SeriesInstanceUID': args.SeriesInstanceUID,
-                'SeriesDescription': args.SeriesDescription,
-                'pacs_name': args.pacsname
-                }
-        result = client.admin_register_pacs_series(data, timeout)
+        if resource_name == 'pacsseries':
+            data = {'path': args.pacsseriespath,
+                    'ndicom': args.ndicom,
+                    'PatientID': args.PatientID,
+                    'PatientName': args.PatientName,
+                    'StudyInstanceUID': args.StudyInstanceUID,
+                    'StudyDescription': args.StudyDescription,
+                    'SeriesInstanceUID': args.SeriesInstanceUID,
+                    'SeriesDescription': args.SeriesDescription,
+                    'pacs_name': args.pacsname
+                    }
+            result = cl.admin_register_pacs_series(data, timeout)
 
-    elif resource_name == 'pipeline':
-        data = args.pipelinedata
-        result = client.create_pipeline(data, timeout)
+        elif resource_name == 'pipeline':
+            data = args.pipelinedata
+            result = cl.create_pipeline(data, timeout)
 
-    elif resource_name == 'plugin':
-        result = client.admin_upload_plugin(args.computenames, args.fname, timeout)
+        elif resource_name == 'plugin':
+            result = cl.admin_upload_plugin(args.computenames, args.fname, timeout)
 
-    elif resource_name == 'plugininstance':
-        plugin_id = args.pluginid
-        data = args.instancedata
-        result = client.create_plugin_instance(plugin_id, data, timeout)
+        elif resource_name == 'plugininstance':
+            plugin_id = args.pluginid
+            data = args.instancedata
+            result = cl.create_plugin_instance(plugin_id, data, timeout)
 
-    elif resource_name == 'workflow':
-        pipeline_id = args.pipelineid
-        data = args.workflowdata
-        result = client.create_workflow(pipeline_id, data, timeout)
+        elif resource_name == 'workflow':
+            pipeline_id = args.pipelineid
+            data = args.workflowdata
+            result = cl.create_workflow(pipeline_id, data, timeout)
 
-    print('\n')
-    for descriptor in result:
-        print('%s: %s' % (descriptor, result[descriptor]))
-    print('\n')
+        print('\n')
+        for descriptor in result:
+            print('%s: %s' % (descriptor, result[descriptor]))
+        print('\n')
+
+
+if __name__ == "__main__":
+    main()
