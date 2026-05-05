@@ -420,6 +420,8 @@ class Client(object):
                     'title': default_param['plugin_piping_title'],
                     'cpu_limit': default_param['plugin_piping_cpu_limit'],
                     'memory_limit': default_param['plugin_piping_memory_limit'],
+                    'gpu_limit': default_param['plugin_piping_gpu_limit'],
+                    'number_of_workers': default_param['plugin_piping_number_of_workers'],
                     'plugin_parameter_defaults': []
                 }
 

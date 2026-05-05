@@ -18,7 +18,7 @@ relevant modules.
 Overview
 --------
 
-At time of writing (early 2022), three scripts/modules are in production:
+Three scripts/modules are included in this repository:
 
 - a general CUBE client
 - a more specific plugin search utility

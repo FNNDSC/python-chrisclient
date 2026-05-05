@@ -121,6 +121,8 @@ class ClientTests(TestCase):
         self.assertIn('plugin_piping_title', first_param)
         self.assertIn('plugin_piping_cpu_limit', first_param)
         self.assertIn('plugin_piping_memory_limit', first_param)
+        self.assertIn('plugin_piping_gpu_limit', first_param)
+        self.assertIn('plugin_piping_number_of_workers', first_param)
 
     def test_get_pipeline_default_parameters_unauthenticated(self):
         """
@@ -180,6 +182,8 @@ class ClientTests(TestCase):
             self.assertIn('title', node)
             self.assertIn('cpu_limit', node)
             self.assertIn('memory_limit', node)
+            self.assertIn('gpu_limit', node)
+            self.assertIn('number_of_workers', node)
             if 'plugin_parameter_defaults' in node:
                 for param in node['plugin_parameter_defaults']:
                     self.assertIsNone(param['default'])
